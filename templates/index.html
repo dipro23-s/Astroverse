@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AstroVerse — Astrophysics Education & Simulation Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+  <style>
+:root{
+  --bg:#010409;--bg2:rgba(5,12,30,.9);--glass:rgba(10,20,50,.6);
+  --border:rgba(99,179,237,.2);--border2:rgba(99,179,237,.5);
+  --blue:#38BDF8;--cyan:#22D3EE;--purple:#A855F7;--pink:#EC4899;
+  --gold:#FCD34D;--green:#4ADE80;--orange:#FB923C;
+  --text:#E2E8F0;--text2:#94A3B8;--dim:#475569;
+  --f1:'Orbitron',monospace;--f2:'Exo 2',sans-serif;--fm:'Share Tech Mono',monospace;
+  --gb:0 0 20px rgba(56,189,248,.5),0 0 40px rgba(56,189,248,.2);
+  --gp:0 0 20px rgba(168,85,247,.5),0 0 40px rgba(168,85,247,.2);
+  --tr:all .3s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--f2);font-weight:300;overflow-x:hidden;cursor:crosshair}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--blue);border-radius:3px}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+canvas{display:block}
+
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .8s,visibility .8s}
+#loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.lr{position:absolute;top:50%;left:50%;border-radius:50%;border:2px solid transparent;animation:lspin 2s linear infinite}
+.lr1{width:200px;height:200px;margin:-100px 0 0 -100px;border-top-color:var(--blue);border-right-color:var(--blue)}
+.lr2{width:155px;height:155px;margin:-77px 0 0 -77px;border-top-color:var(--purple);animation-direction:reverse;animation-duration:1.5s}
+.lr3{width:110px;height:110px;margin:-55px 0 0 -55px;border-top-color:var(--cyan);animation-duration:1s}
+.ltxt{position:relative;text-align:center;padding-top:120px}
+.ltitle{display:block;font-family:var(--f1);font-size:1.4rem;font-weight:900;color:var(--blue);letter-spacing:.3em;margin-bottom:.5rem}
+.lsub{display:block;font-family:var(--fm);font-size:.65rem;color:var(--text2);letter-spacing:.2em;margin-bottom:1rem}
+.lbar{width:220px;height:2px;background:rgba(255,255,255,.1);border-radius:1px;margin:0 auto}
+.lbar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:1px;transition:width .3s}
+@keyframes lspin{to{transform:rotate(360deg)}}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:.75rem 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(1,4,9,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:var(--tr)}
+.nav-logo{font-family:var(--f1);font-size:1.1rem;font-weight:900;color:var(--blue);letter-spacing:.15em;display:flex;align-items:center;gap:.5rem;cursor:pointer}
+.nav-logo-icon{color:var(--cyan);font-size:1.2rem}
+.nav-logo em{color:var(--purple);font-style:normal}
+.nav-links{display:flex;align-items:center;gap:.25rem}
+.nav-link{font-family:var(--fm);font-size:.68rem;letter-spacing:.15em;color:var(--text2);padding:.5rem .75rem;border-radius:4px;transition:var(--tr);border:1px solid transparent}
+.nav-link:hover,.nav-link.active{color:var(--blue);border-color:var(--border2);background:rgba(56,189,248,.07)}
+.nav-search{display:flex;align-items:center;gap:.5rem}
+.nav-search-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:.85rem;transition:var(--tr)}
+.nav-search-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+
+.nav-ham{display:none;flex-direction:column;gap:5px;padding:8px}
+.nav-ham span{display:block;width:22px;height:2px;background:var(--text2);transition:var(--tr)}
+
+/* VIEWS */
+.view{display:none;min-height:100vh;padding-top:60px}
+.view.active{display:block}
+
+/* HERO */
+#hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-content{position:relative;z-index:2;text-align:center;padding:2rem;max-width:900px}
+.hero-badge{font-family:var(--fm);font-size:.65rem;letter-spacing:.25em;color:var(--cyan);border:1px solid rgba(34,211,238,.3);padding:.4rem 1rem;border-radius:2rem;display:inline-block;margin-bottom:2rem;backdrop-filter:blur(10px)}
+.hero-title{font-family:var(--f1);font-weight:900;line-height:1.05;margin-bottom:1.5rem}
+.ht1{display:block;font-size:clamp(3rem,8vw,7rem);background:linear-gradient(135deg,var(--blue),var(--purple),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 30px rgba(56,189,248,.4))}
+.ht2{display:block;font-size:clamp(1rem,3vw,1.8rem);color:var(--text2);font-weight:400;letter-spacing:.1em}
+.ht2 em{color:var(--purple);font-style:italic}
+.hero-desc{font-size:1.05rem;color:var(--text2);max-width:600px;margin:0 auto 2.5rem;line-height:1.7}
+.hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
+.btn-primary{position:relative;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-family:var(--fm);font-size:.75rem;letter-spacing:.15em;padding:.85rem 2rem;border-radius:4px;overflow:hidden;transition:var(--tr);display:flex;align-items:center;gap:.5rem}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--gb)}
+.btn-glow{position:absolute;inset:0;background:rgba(255,255,255,.1);transform:translateX(-100%);transition:.5s}
+.btn-primary:hover .btn-glow{transform:translateX(100%)}
+.btn-secondary{font-family:var(--fm);font-size:.75rem;letter-spacing:.15em;color:var(--text2);border:1px solid var(--border2);padding:.85rem 2rem;border-radius:4px;transition:var(--tr)}
+.btn-secondary:hover{color:var(--blue);border-color:var(--blue);background:rgba(56,189,248,.07)}
+.hero-stats{display:flex;gap:3rem;justify-content:center;flex-wrap:wrap}
+.stat-val{display:block;font-family:var(--f1);font-size:1.6rem;font-weight:700;color:var(--blue)}
+.stat-label{font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;color:var(--dim);display:block}
+.hero-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);text-align:center;color:var(--dim)}
+.hero-scroll span{font-family:var(--fm);font-size:.6rem;letter-spacing:.2em;display:block;margin-bottom:.5rem}
+.scroll-arrow{width:1px;height:40px;background:linear-gradient(var(--blue),transparent);margin:0 auto;animation:scrollPulse 2s infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* SECTIONS */
+.section{padding:6rem 2rem}
+.section-inner{max-width:1200px;margin:0 auto}
+.sec-hdr{text-align:center;margin-bottom:3rem}
+.sec-badge{font-family:var(--fm);font-size:.6rem;letter-spacing:.25em;color:var(--cyan);margin-bottom:.75rem;display:block}
+.sec-title{font-family:var(--f1);font-size:clamp(1.5rem,4vw,2.5rem);font-weight:700;margin-bottom:.75rem}
+.sec-title .accent{color:var(--blue)}
+.sec-title .accent2{color:var(--purple)}
+.sec-sub{color:var(--text2);font-size:.95rem;max-width:600px;margin:0 auto}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+.module-card{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.75rem;cursor:pointer;transition:var(--tr);position:relative;overflow:hidden}
+.module-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(56,189,248,.04),transparent);opacity:0;transition:var(--tr)}
+.module-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.module-card:hover::before{opacity:1}
+.mc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem}
+.mc-icon{font-size:2rem;filter:drop-shadow(0 0 8px currentColor)}
+.mc-badge{font-family:var(--fm);font-size:.58rem;letter-spacing:.12em;padding:.3rem .6rem;border-radius:3px;border:1px solid currentColor}
+.mc-title{font-family:var(--f1);font-size:.95rem;font-weight:700;margin-bottom:.25rem}
+.mc-sub{font-size:.8rem;color:var(--text2);margin-bottom:.75rem}
+.mc-desc{font-size:.82rem;color:var(--text2);line-height:1.6;margin-bottom:1rem}
+.mc-footer{display:flex;align-items:center;justify-content:space-between}
+.mc-meta{font-family:var(--fm);font-size:.6rem;color:var(--dim);letter-spacing:.1em}
+.mc-arrow{color:var(--blue);font-size:.9rem;transition:var(--tr)}
+.module-card:hover .mc-arrow{transform:translateX(4px)}
+
+/* MODULE DETAIL PAGE */
+.module-hero{position:relative;min-height:60vh;display:flex;align-items:center;padding:6rem 2rem 4rem;overflow:hidden}
+#moduleHeroCanvas{position:absolute;inset:0;width:100%;height:100%}
+.module-hero-content{position:relative;z-index:2;max-width:900px;margin:0 auto}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--dim);margin-bottom:1.5rem;flex-wrap:wrap}
+.breadcrumb a:hover{color:var(--blue)}
+.breadcrumb-sep{color:var(--dim)}
+.module-title-block .mod-icon{font-size:3rem;margin-bottom:.75rem;display:block;filter:drop-shadow(0 0 15px currentColor)}
+.module-title-block h1{font-family:var(--f1);font-size:clamp(2rem,5vw,3.5rem);font-weight:900;margin-bottom:.5rem}
+.module-title-block .sub{font-size:1.1rem;color:var(--text2);font-style:italic}
+.module-meta-bar{display:flex;gap:1.5rem;margin-top:1.5rem;flex-wrap:wrap}
+.mod-meta-item{font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--text2);display:flex;align-items:center;gap:.35rem}
+.mod-meta-item span{color:var(--blue)}
+
+/* MODULE CONTENT */
+.module-layout{display:grid;grid-template-columns:1fr 300px;gap:2rem;max-width:1200px;margin:0 auto;padding:3rem 2rem}
+@media(max-width:900px){.module-layout{grid-template-columns:1fr}}
+.module-main{}
+.module-sidebar{}
+.content-prose{font-size:.95rem;line-height:1.8;color:var(--text2)}
+.content-prose h1,.content-prose h2,.content-prose h3{font-family:var(--f1);color:var(--text);margin:2rem 0 .75rem;font-weight:700}
+.content-prose h1{font-size:1.5rem;color:var(--blue)}
+.content-prose h2{font-size:1.2rem;border-left:3px solid var(--purple);padding-left:.75rem}
+.content-prose h3{font-size:1rem;color:var(--cyan)}
+.content-prose p{margin-bottom:1rem}
+.content-prose ul,.content-prose ol{padding-left:1.5rem;margin-bottom:1rem}
+.content-prose li{margin-bottom:.35rem}
+.content-prose strong{color:var(--text);font-weight:600}
+.content-prose em{color:var(--purple);font-style:italic}
+.content-prose table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:.85rem}
+.content-prose th{background:rgba(56,189,248,.1);color:var(--blue);font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;padding:.6rem 1rem;text-align:left;border:1px solid var(--border)}
+.content-prose td{padding:.5rem 1rem;border:1px solid var(--border);color:var(--text2)}
+.content-prose code{font-family:var(--fm);font-size:.8rem;background:rgba(56,189,248,.1);color:var(--cyan);padding:.1em .4em;border-radius:3px}
+.content-prose .katex-display{overflow-x:auto;padding:1rem;background:rgba(56,189,248,.05);border:1px solid var(--border);border-radius:6px;margin:1.5rem 0}
+
+/* SUBTOPICS SIDEBAR */
+.sidebar-card{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.25rem}
+.sidebar-title{font-family:var(--fm);font-size:.65rem;letter-spacing:.2em;color:var(--blue);margin-bottom:.75rem}
+.subtopic-list{display:flex;flex-direction:column;gap:.5rem}
+.subtopic-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;border-radius:5px;border:1px solid transparent;cursor:pointer;transition:var(--tr);font-size:.82rem}
+.subtopic-item:hover{border-color:var(--border2);background:rgba(56,189,248,.05)}
+.subtopic-item.active{border-color:var(--blue);background:rgba(56,189,248,.08);color:var(--blue)}
+.subtopic-icon{font-size:1rem;flex-shrink:0}
+.related-sim-card{display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:5px;border:1px solid var(--border);cursor:pointer;transition:var(--tr);font-size:.8rem;margin-bottom:.5rem}
+.related-sim-card:hover{border-color:var(--cyan);background:rgba(34,211,238,.05)}
+
+/* SIMULATIONS PAGE */
+.sim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.5rem}
+.sim-card{background:var(--glass);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:var(--tr)}
+.sim-card:hover{border-color:var(--cyan);transform:translateY(-3px)}
+.sim-card-preview{height:180px;background:linear-gradient(135deg,rgba(56,189,248,.1),rgba(168,85,247,.1));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.sim-preview-icon{font-size:4rem;filter:drop-shadow(0 0 20px var(--blue))}
+.sim-card-body{padding:1.25rem}
+.sim-card-title{font-family:var(--f1);font-size:.9rem;font-weight:700;margin-bottom:.4rem}
+.sim-card-desc{font-size:.8rem;color:var(--text2);line-height:1.6;margin-bottom:.75rem}
+.sim-card-meta{display:flex;gap:.75rem;flex-wrap:wrap}
+.sim-tag{font-family:var(--fm);font-size:.58rem;letter-spacing:.1em;padding:.25rem .5rem;border-radius:3px;border:1px solid var(--border);color:var(--text2)}
+.sim-tag.featured{border-color:var(--cyan);color:var(--cyan)}
+
+/* SIMULATION VIEWER */
+.sim-viewer{position:relative;width:100%;background:#000}
+.sim-canvas-wrap{position:relative;overflow:hidden;background:#000}
+.sim-canvas-wrap canvas{display:block}
+.sim-controls-panel{background:rgba(5,12,30,.92);border:1px solid var(--border);border-radius:8px;padding:.85rem;min-width:190px;backdrop-filter:blur(12px)}
+.sim-ctrl-group{margin-bottom:.75rem}
+.sim-ctrl-label{font-family:var(--fm);font-size:.58rem;letter-spacing:.12em;color:var(--text2);display:flex;justify-content:space-between;margin-bottom:.35rem}
+.sim-ctrl-label span{color:var(--blue)}
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer;height:3px;border-radius:2px;margin:.2rem 0}
+select.form-select{width:100%;background:rgba(5,12,30,.9);border:1px solid var(--border);border-radius:5px;padding:.4rem .6rem;color:var(--text);font-size:.75rem;cursor:pointer;margin-top:.25rem}
+select.form-select option{background:#0a1428}
+.sim-btn{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;color:var(--blue);border:1px solid var(--border2);padding:.4rem .75rem;border-radius:4px;width:100%;margin-top:.4rem;transition:var(--tr);text-align:left;display:block}
+.sim-btn:hover{background:rgba(56,189,248,.1);border-color:var(--blue)}
+.sim-info-sidebar{background:rgba(5,12,30,.95);border-left:1px solid var(--border)}
+.sim-info-title{font-family:var(--f1);font-size:.75rem;font-weight:700;color:var(--cyan);margin-bottom:.75rem;letter-spacing:.1em}
+.sim-info-text{font-size:.78rem;color:var(--text2);line-height:1.7}
+.sim-info-text b{color:var(--text)}
+
+
+/* TIMELINE */
+.timeline-wrap{position:relative;max-width:900px;margin:0 auto}
+.timeline-line{position:absolute;left:50%;transform:translateX(-50%);top:0;bottom:0;width:2px;background:linear-gradient(var(--bg),var(--blue) 20%,var(--purple) 80%,var(--bg));opacity:.4}
+.tl-item{display:flex;gap:2rem;margin-bottom:3rem;position:relative;align-items:flex-start}
+.tl-item:nth-child(even){flex-direction:row-reverse}
+.tl-card{flex:1;background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.5rem;cursor:pointer;transition:var(--tr);position:relative}
+.tl-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.tl-dot{position:absolute;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;border:2px solid;top:1.5rem;z-index:2}
+.tl-time-badge{font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;padding:.25rem .6rem;border-radius:2rem;border:1px solid currentColor;display:inline-flex;align-items:center;gap:.35rem;margin-bottom:.75rem}
+.tl-card-title{font-family:var(--f1);font-size:.9rem;font-weight:700;margin-bottom:.4rem}
+.tl-card-desc{font-size:.8rem;color:var(--text2);line-height:1.6}
+.tl-temp{font-family:var(--fm);font-size:.6rem;color:var(--dim);margin-top:.5rem}
+.tl-spacer{flex:1}
+
+/* TIMELINE DETAIL */
+.phase-nav{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem;background:var(--glass);border-bottom:1px solid var(--border)}
+.phase-nav-btn{font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--text2);border:1px solid var(--border);padding:.5rem 1rem;border-radius:4px;transition:var(--tr);display:flex;align-items:center;gap:.4rem}
+.phase-nav-btn:hover{color:var(--blue);border-color:var(--blue)}
+.phase-nav-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* RESEARCH */
+.papers-grid{display:grid;gap:1.25rem}
+.paper-card{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.5rem;transition:var(--tr)}
+.paper-card:hover{border-color:var(--border2)}
+.paper-title{font-family:var(--f1);font-size:.9rem;font-weight:700;margin-bottom:.4rem;color:var(--text)}
+.paper-authors{font-size:.8rem;color:var(--blue);margin-bottom:.25rem}
+.paper-journal{font-family:var(--fm);font-size:.65rem;color:var(--text2);letter-spacing:.1em}
+.paper-abstract{font-size:.82rem;color:var(--text2);line-height:1.6;margin-top:.75rem}
+.paper-links{display:flex;gap:.75rem;margin-top:.75rem;flex-wrap:wrap}
+.paper-link{font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;color:var(--cyan);border:1px solid rgba(34,211,238,.3);padding:.3rem .65rem;border-radius:3px;transition:var(--tr)}
+.paper-link:hover{background:rgba(34,211,238,.1)}
+
+/* SEARCH */
+.search-overlay{position:fixed;inset:0;z-index:2000;background:rgba(1,4,9,.95);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;padding:6rem 2rem 2rem;opacity:0;visibility:hidden;transition:var(--tr)}
+.search-overlay.open{opacity:1;visibility:visible}
+.search-box{width:100%;max-width:700px;position:relative;margin-bottom:2rem}
+.search-input{width:100%;background:rgba(5,12,30,.9);border:1px solid var(--border2);border-radius:8px;padding:1rem 1rem 1rem 3rem;color:var(--text);font-family:var(--fm);font-size:.9rem;letter-spacing:.05em;outline:none;transition:var(--tr)}
+.search-input:focus{border-color:var(--blue);box-shadow:var(--gb)}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text2);font-size:1rem}
+.search-close{position:absolute;right:1rem;top:50%;transform:translateY(-50%);color:var(--text2);font-size:1.2rem;cursor:pointer;transition:var(--tr)}
+.search-close:hover{color:var(--blue)}
+.search-results{width:100%;max-width:700px;display:grid;gap:.75rem;max-height:60vh;overflow-y:auto}
+.search-result-item{background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:1rem;cursor:pointer;transition:var(--tr);display:flex;gap:1rem;align-items:flex-start}
+.search-result-item:hover{border-color:var(--border2);background:rgba(56,189,248,.05)}
+.search-result-icon{font-size:1.5rem;flex-shrink:0}
+.search-result-type{font-family:var(--fm);font-size:.58rem;letter-spacing:.15em;color:var(--cyan);margin-bottom:.2rem}
+.search-result-title{font-size:.85rem;font-weight:600;margin-bottom:.2rem}
+.search-result-desc{font-size:.75rem;color:var(--text2);line-height:1.5}
+.search-hint{font-family:var(--fm);font-size:.65rem;letter-spacing:.15em;color:var(--dim)}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;margin-bottom:4rem}
+.feature-card{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.75rem;text-align:center}
+.feature-icon{font-size:2.5rem;margin-bottom:1rem;display:block;filter:drop-shadow(0 0 10px var(--blue))}
+.feature-title{font-family:var(--f1);font-size:.85rem;font-weight:700;margin-bottom:.5rem;color:var(--blue)}
+.feature-desc{font-size:.82rem;color:var(--text2);line-height:1.6}
+.tech-stack{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center;margin-top:2rem}
+.tech-badge{font-family:var(--fm);font-size:.65rem;letter-spacing:.1em;padding:.4rem .9rem;border-radius:2rem;border:1px solid var(--border2);color:var(--text2)}
+
+/* CANVAS PARTICLE BG */
+#particleCanvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5}
+
+/* BACK BUTTON */
+.back-btn{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--text2);border:1px solid var(--border);padding:.5rem 1rem;border-radius:4px;transition:var(--tr);cursor:pointer;margin-bottom:1.5rem}
+.back-btn:hover{color:var(--blue);border-color:var(--blue)}
+
+/* LOADING SPINNER */
+.loading-ring{display:flex;align-items:center;justify-content:center;padding:4rem;flex-direction:column;gap:1rem;color:var(--text2);font-family:var(--fm);font-size:.65rem;letter-spacing:.15em}
+.spin{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--blue);animation:lspin .8s linear infinite}
+
+/* PARTICLE BG SECTION */
+.particles-section{position:relative}
+#solarCanvas{width:100%;height:60vh;min-height:400px;display:block}
+
+/* FOOTER */
+footer{background:rgba(5,12,30,.5);border-top:1px solid var(--border);padding:3rem 2rem;text-align:center}
+.footer-logo{font-family:var(--f1);font-size:1.1rem;font-weight:900;color:var(--blue);margin-bottom:.75rem}
+.footer-links{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem}
+.footer-link{font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--dim);transition:var(--tr);cursor:pointer}
+.footer-link:hover{color:var(--blue)}
+.footer-copy{font-family:var(--fm);font-size:.6rem;color:var(--dim);letter-spacing:.1em}
+
+/* EQUATION DISPLAY */
+.eq-block{background:rgba(56,189,248,.05);border:1px solid var(--border);border-radius:6px;padding:1.25rem;margin:1.5rem 0;overflow-x:auto;text-align:center}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links{display:none;position:fixed;top:60px;left:0;right:0;background:rgba(1,4,9,.97);flex-direction:column;padding:1rem;border-bottom:1px solid var(--border)}
+  .nav-links.open{display:flex}
+  .nav-ham{display:flex}
+  .tl-item{flex-direction:column!important;padding-left:2rem}
+  .tl-line{display:none}
+  .tl-dot{left:0;transform:none}
+  .tl-spacer{display:none}
+  .module-layout{grid-template-columns:1fr}
+  .sim-controls-panel,.sim-info-sidebar{position:static;max-width:100%;width:100%}
+  .sim-canvas-wrap{height:50vh}
+  .hero-stats{gap:1.5rem}
+}
+
+/* TAGS */
+.tag-pill{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;padding:.25rem .6rem;border-radius:2rem;border:1px solid var(--border);color:var(--text2);background:rgba(5,12,30,.5)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--dim);font-family:var(--fm);font-size:.75rem;letter-spacing:.15em}
+
+/* NOTIFICATION */
+.notif{position:fixed;bottom:2rem;right:2rem;background:var(--glass);border:1px solid var(--border2);border-radius:8px;padding:1rem 1.5rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;z-index:3000;transform:translateY(100px);opacity:0;transition:.4s cubic-bezier(.4,0,.2,1)}
+.notif.show{transform:translateY(0);opacity:1}
+.notif.success{border-color:var(--green);color:var(--green)}
+.notif.info{border-color:var(--blue);color:var(--blue)}
+  </style>
+</head>
+<body>
+<canvas id="particleCanvas"></canvas>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="lr lr1"></div><div class="lr lr2"></div><div class="lr lr3"></div>
+  <div class="ltxt">
+    <span class="ltitle">ASTROVERSE</span>
+    <span class="lsub" id="loaderMsg">INITIALIZING DEEP SPACE SYSTEMS...</span>
+    <div class="lbar"><div class="lbar-fill" id="loaderBar" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="Search modules, simulations, timeline phases..." autocomplete="off"/>
+    <span class="search-close" onclick="closeSearch()">✕</span>
+  </div>
+  <div id="searchResults" class="search-results">
+    <div class="search-hint">TYPE TO SEARCH ACROSS THE ENTIRE PLATFORM</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo" onclick="navigate('/')">
+    <span class="nav-logo-icon">◈</span>
+    ASTRO<em>VERSE</em>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a class="nav-link" onclick="navigate('/')">HOME</a>
+    <a class="nav-link" onclick="navigate('/modules')">MODULES</a>
+    <a class="nav-link" onclick="navigate('/simulations')">SIMULATIONS</a>
+    <a class="nav-link" onclick="navigate('/timeline')">TIMELINE</a>
+    <a class="nav-link" onclick="navigate('/research')">RESEARCH</a>
+    <a class="nav-link" onclick="navigate('/about')">ABOUT</a>
+  </div>
+  <div class="nav-search">
+    <button class="nav-search-btn" onclick="openSearch()" title="Search">🔍</button>
+    <button class="nav-ham" id="navHam" onclick="toggleNav()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- ==================== VIEWS ==================== -->
+
+<!-- HOME VIEW -->
+<div id="view-home" class="view">
+  <!-- HERO -->
+  <section id="hero">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge">◈ DEEP SPACE EDUCATIONAL SYSTEM v5.0</div>
+      <h1 class="hero-title">
+        <span class="ht1">ASTROVERSE</span>
+        <span class="ht2">Explore the Universe <em>Beyond Imagination</em></span>
+      </h1>
+      <p class="hero-desc">Journey through black holes, galaxies, and the fabric of spacetime itself. Scientific documentation, interactive simulations, and immersive visualizations await.</p>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="navigate('/modules')">
+          <span class="btn-glow"></span>
+          <span>BEGIN EXPLORATION</span><span>→</span>
+        </button>
+        <button class="btn-secondary" onclick="navigate('/simulations')">ENTER SIMULATION LAB</button>
+      </div>
+      <div class="hero-stats" id="heroStats">
+        <div class="stat"><span class="stat-val" id="statModules">10</span><span class="stat-label">LEARNING MODULES</span></div>
+        <div class="stat"><span class="stat-val" id="statSims">10</span><span class="stat-label">SIMULATIONS</span></div>
+        <div class="stat"><span class="stat-val" id="statPhases">11</span><span class="stat-label">TIMELINE PHASES</span></div>
+      </div>
+    </div>
+    <div class="hero-scroll"><span>SCROLL TO EXPLORE</span><div class="scroll-arrow"></div></div>
+  </section>
+
+  <!-- SOLAR SYSTEM PREVIEW -->
+  <section class="section particles-section" style="padding-top:0">
+    <canvas id="solarCanvas"></canvas>
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ INTERACTIVE 3D MODEL</span>
+        <h2 class="sec-title">OUR <span class="accent">SOLAR SYSTEM</span></h2>
+        <p class="sec-sub">Real orbital mechanics. Drag to rotate, scroll to zoom, click a planet to explore.</p>
+      </div>
+      <div style="text-align:center;margin-top:1.5rem">
+        <button class="btn-primary" onclick="navigate('/simulations/solar-system')">
+          <span class="btn-glow"></span>OPEN FULL SIMULATION →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED MODULES -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ SCIENTIFIC DOCUMENTATION</span>
+        <h2 class="sec-title">FEATURED <span class="accent">MODULES</span></h2>
+        <p class="sec-sub">Deep-dive astrophysics articles with equations, interactive diagrams, and research references.</p>
+      </div>
+      <div class="cards-grid" id="featuredModules"><div class="loading-ring"><div class="spin"></div>LOADING</div></div>
+      <div style="text-align:center;margin-top:2rem">
+        <button class="btn-secondary" onclick="navigate('/modules')">VIEW ALL MODULES →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATIONS PREVIEW -->
+  <section class="section" style="background:rgba(5,12,30,.3)">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ SIMULATION LABORATORY</span>
+        <h2 class="sec-title">INTERACTIVE <span class="accent2">SIMULATIONS</span></h2>
+        <p class="sec-sub">WebGL-powered physics simulations. Adjust parameters, explore concepts in real-time.</p>
+      </div>
+      <div class="sim-grid" id="featuredSims"><div class="loading-ring"><div class="spin"></div>LOADING</div></div>
+      <div style="text-align:center;margin-top:2rem">
+        <button class="btn-secondary" onclick="navigate('/simulations')">ENTER SIMULATION LAB →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE PREVIEW -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ COSMIC HISTORY</span>
+        <h2 class="sec-title">UNIVERSE <span class="accent">TIMELINE</span></h2>
+        <p class="sec-sub">From the Planck epoch to the far future — 13.8 billion years of cosmic history.</p>
+      </div>
+      <div class="timeline-wrap" id="timelinePreview"><div class="loading-ring"><div class="spin"></div>LOADING</div></div>
+      <div style="text-align:center;margin-top:2rem">
+        <button class="btn-secondary" onclick="navigate('/timeline')">EXPLORE FULL TIMELINE →</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">◈ ASTROVERSE</div>
+    <div class="footer-links">
+      <span class="footer-link" onclick="navigate('/')">Home</span>
+      <span class="footer-link" onclick="navigate('/modules')">Modules</span>
+      <span class="footer-link" onclick="navigate('/simulations')">Simulations</span>
+      <span class="footer-link" onclick="navigate('/timeline')">Timeline</span>
+      <span class="footer-link" onclick="navigate('/research')">Research</span>
+      <span class="footer-link" onclick="navigate('/about')">About</span>
+    </div>
+    <div class="footer-copy">ASTROVERSE v5.0 — ASTROPHYSICS EDUCATION PLATFORM</div>
+  </footer>
+</div>
+
+<!-- MODULES LIST VIEW -->
+<div id="view-modules" class="view">
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ SCIENTIFIC DOCUMENTATION SYSTEM</span>
+        <h2 class="sec-title">ASTROPHYSICS <span class="accent">MODULES</span></h2>
+        <p class="sec-sub">Complete scientific documentation on all major topics in astrophysics and cosmology.</p>
+      </div>
+      <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem" id="categoryFilter"></div>
+      <div class="cards-grid" id="allModules"><div class="loading-ring"><div class="spin"></div>LOADING MODULES</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- MODULE DETAIL VIEW -->
+<div id="view-module-detail" class="view">
+  <div id="moduleDetailContent"></div>
+</div>
+
+<!-- SUBTOPIC DETAIL VIEW -->
+<div id="view-subtopic-detail" class="view">
+  <div id="subtopicDetailContent"></div>
+</div>
+
+<!-- SIMULATIONS LIST VIEW -->
+<div id="view-simulations" class="view">
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ PHYSICS SIMULATION LABORATORY</span>
+        <h2 class="sec-title">SIMULATION <span class="accent2">LAB</span></h2>
+        <p class="sec-sub">WebGL-powered interactive physics simulations. Every simulation is an independent explorable environment.</p>
+      </div>
+      <div class="sim-grid" id="allSims"><div class="loading-ring"><div class="spin"></div>LOADING</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- SIMULATION VIEWER VIEW -->
+<div id="view-simulation-detail" class="view">
+  <div id="simDetailContent"></div>
+</div>
+
+<!-- TIMELINE LIST VIEW -->
+<div id="view-timeline" class="view">
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ COSMIC CHRONOLOGY</span>
+        <h2 class="sec-title">UNIVERSE <span class="accent">TIMELINE</span></h2>
+        <p class="sec-sub">From the Planck epoch to the heat death of the universe. Click any phase to explore it fully.</p>
+      </div>
+      <div class="timeline-wrap" id="fullTimeline"><div class="loading-ring"><div class="spin"></div>LOADING</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- TIMELINE PHASE DETAIL VIEW -->
+<div id="view-timeline-detail" class="view">
+  <div id="timelineDetailContent"></div>
+</div>
+
+<!-- RESEARCH VIEW -->
+<div id="view-research" class="view">
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ SCIENTIFIC LITERATURE</span>
+        <h2 class="sec-title">RESEARCH <span class="accent">& PAPERS</span></h2>
+        <p class="sec-sub">Curated scientific papers, arXiv links, and research references across astrophysics topics.</p>
+      </div>
+      <div class="papers-grid" id="allPapers"><div class="loading-ring"><div class="spin"></div>LOADING</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ABOUT VIEW -->
+<div id="view-about" class="view">
+  <section class="section">
+    <div class="section-inner" style="max-width:900px">
+      <div class="sec-hdr">
+        <span class="sec-badge">◈ ABOUT THE PROJECT</span>
+        <h2 class="sec-title">ASTRO<span class="accent">VERSE</span></h2>
+        <p class="sec-sub">A complete astrophysics education and simulation platform.</p>
+      </div>
+      <div class="about-grid">
+        <div class="feature-card"><span class="feature-icon">📚</span><div class="feature-title">SCIENTIFIC DOCUMENTATION</div><div class="feature-desc">Deep-dive articles with LaTeX equations, interactive diagrams, and full scientific rigor.</div></div>
+        <div class="feature-card"><span class="feature-icon">🔬</span><div class="feature-title">SIMULATION LAB</div><div class="feature-desc">10 WebGL-powered physics simulations with adjustable parameters and real-time visualization.</div></div>
+        <div class="feature-card"><span class="feature-icon">⏱</span><div class="feature-title">COSMIC TIMELINE</div><div class="feature-desc">11 phases from the Planck epoch to the heat death of the universe, with full scientific detail.</div></div>
+        <div class="feature-card"><span class="feature-icon">🔭</span><div class="feature-title">RESEARCH SYSTEM</div><div class="feature-desc">Curated scientific papers with arXiv, NASA, and journal links for every topic.</div></div>
+        <div class="feature-card"><span class="feature-icon">⚙</span><div class="feature-title">ADMIN DASHBOARD</div><div class="feature-desc">Full CMS-style admin dashboard — create, edit, and manage all content without code changes.</div></div>
+        <div class="feature-card"><span class="feature-icon">🌐</span><div class="feature-title">MULTI-PAGE ARCHITECTURE</div><div class="feature-desc">Every topic, subtopic, simulation, and timeline phase has its own dedicated URL and page.</div></div>
+      </div>
+      <div style="text-align:center">
+        <h3 style="font-family:var(--f1);font-size:1rem;color:var(--blue);margin-bottom:1rem;letter-spacing:.1em">TECHNOLOGY STACK</h3>
+        <div class="tech-stack">
+          <span class="tech-badge">Flask</span><span class="tech-badge">SQLite</span>
+          <span class="tech-badge">Three.js</span><span class="tech-badge">WebGL</span>
+          <span class="tech-badge">GLSL Shaders</span><span class="tech-badge">KaTeX</span>
+          <span class="tech-badge">Python</span><span class="tech-badge">JavaScript</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- SEARCH RESULTS VIEW -->
+<div id="view-search" class="view">
+  <section class="section">
+    <div class="section-inner">
+      <div class="sec-hdr">
+        <h2 class="sec-title">SEARCH <span class="accent">RESULTS</span></h2>
+        <p class="sec-sub" id="searchResultsInfo"></p>
+      </div>
+      <div class="cards-grid" id="searchResultsGrid"></div>
+    </div>
+  </section>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="/static/js/simulations.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+// ======================================================
+// ASTROVERSE v5 — Main SPA Application
+// ======================================================
+const API = window.location.origin + "/api";
+let currentPath = "";
+let particleAnim = null;
+
+// ── LOADER ──────────────────────────────────────────
+(function runLoader(){
+  const msgs = ["INITIALIZING DEEP SPACE SYSTEMS...","CALIBRATING TELESCOPE ARRAYS...","LOADING ASTROPHYSICS DATABASE...","SYNCHRONIZING ORBITAL MECHANICS...","ENGAGING WARP DRIVE SIMULATION...","ASTROVERSE READY"];
+  const bar = document.getElementById("loaderBar");
+  const msg = document.getElementById("loaderMsg");
+  let p = 0;
+  const iv = setInterval(()=>{
+    p += Math.random()*15+3; if(p>100)p=100;
+    bar.style.width=p+"%";
+    msg.textContent=msgs[Math.min(Math.floor(p/100*(msgs.length-1)),msgs.length-1)];
+    if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById("loader").classList.add("hidden");initApp();},400)}
+  },120);
+})();
+
+// ── ROUTER ───────────────────────────────────────────
+function navigate(path, pushState=true){
+  currentPath = path;
+  if(pushState) history.pushState({path}, "", path);
+  const views = document.querySelectorAll(".view");
+  views.forEach(v=>v.classList.remove("active"));
+  updateNavActive(path);
+  document.getElementById("navLinks").classList.remove("open");
+
+  if(path === "/"){
+    document.getElementById("view-home").classList.add("active");
+    loadHomeData();
+  } else if(path === "/modules"){
+    document.getElementById("view-modules").classList.add("active");
+    loadAllModules();
+  } else if(path.startsWith("/modules/")){
+    const parts = path.split("/").filter(Boolean);
+    if(parts.length === 3){
+      document.getElementById("view-subtopic-detail").classList.add("active");
+      loadSubtopicDetail(parts[1], parts[2]);
+    } else {
+      document.getElementById("view-module-detail").classList.add("active");
+      loadModuleDetail(parts[1]);
+    }
+  } else if(path === "/simulations"){
+    document.getElementById("view-simulations").classList.add("active");
+    loadAllSimulations();
+  } else if(path.startsWith("/simulations/")){
+    document.getElementById("view-simulation-detail").classList.add("active");
+    loadSimulationDetail(path.split("/")[2]);
+  } else if(path === "/timeline"){
+    document.getElementById("view-timeline").classList.add("active");
+    loadFullTimeline();
+  } else if(path.startsWith("/timeline/")){
+    document.getElementById("view-timeline-detail").classList.add("active");
+    loadTimelinePhase(path.split("/")[2]);
+  } else if(path === "/research"){
+    document.getElementById("view-research").classList.add("active");
+    loadResearch();
+  } else if(path === "/about"){
+    document.getElementById("view-about").classList.add("active");
+  } else if(path.startsWith("/search")){
+    document.getElementById("view-search").classList.add("active");
+    const q = new URLSearchParams(path.split("?")[1]||"").get("q")||"";
+    loadSearchResults(q);
+  }
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+window.addEventListener("popstate", e=>{
+  navigate(location.pathname+(location.search||""), false);
+});
+
+function updateNavActive(path){
+  document.querySelectorAll(".nav-link").forEach(l=>l.classList.remove("active"));
+  if(path==="/"||path==="") document.querySelectorAll(".nav-link")[0]?.classList.add("active");
+  else if(path.startsWith("/modules")) document.querySelectorAll(".nav-link")[1]?.classList.add("active");
+  else if(path.startsWith("/simulations")) document.querySelectorAll(".nav-link")[2]?.classList.add("active");
+  else if(path.startsWith("/timeline")) document.querySelectorAll(".nav-link")[3]?.classList.add("active");
+  else if(path.startsWith("/research")) document.querySelectorAll(".nav-link")[4]?.classList.add("active");
+  else if(path.startsWith("/about")) document.querySelectorAll(".nav-link")[5]?.classList.add("active");
+}
+
+function toggleNav(){
+  document.getElementById("navLinks").classList.toggle("open");
+}
+
+// ── INIT ─────────────────────────────────────────────
+function initApp(){
+  startParticleCanvas();
+  startHeroCanvas();
+  navigate(location.pathname+(location.search||""), false);
+  // Search keyboard shortcut
+  document.addEventListener("keydown", e=>{
+    if(e.key==="/" && document.activeElement.tagName!=="INPUT") openSearch();
+    if(e.key==="Escape") closeSearch();
+  });
+}
+
+// ── FETCH HELPERS ─────────────────────────────────────
+async function apiFetch(url){
+  try{
+    const r = await fetch(API+url, {credentials:'include'});
+    if(!r.ok) return null;
+    return await r.json();
+  } catch(e){ console.error('API error:', url, e); return null; }
+}
+
+// ── HOME DATA ─────────────────────────────────────────
+async function loadHomeData(){
+  const [stats, featured, featSims, timeline] = await Promise.all([
+    apiFetch("/stats"),
+    apiFetch("/modules?featured=1"),
+    apiFetch("/simulations?featured=1"),
+    apiFetch("/timeline"),
+  ]);
+  if(stats){
+    animateCount(document.getElementById("statModules"), stats.modules);
+    animateCount(document.getElementById("statSims"), stats.simulations);
+    animateCount(document.getElementById("statPhases"), stats.timeline_phases);
+  }
+  if(featured) renderModuleCards("featuredModules", featured.slice(0,6));
+  if(featSims) renderSimCards("featuredSims", featSims.slice(0,3));
+  if(timeline) renderTimelinePreview("timelinePreview", timeline.slice(0,5));
+  initSolarPreview();
+}
+
+function animateCount(el, target){
+  if(!el) return;
+  let cur = 0;
+  const step = Math.ceil(target/40);
+  const iv = setInterval(()=>{
+    cur = Math.min(cur+step, target);
+    el.textContent = cur.toLocaleString();
+    if(cur>=target) clearInterval(iv);
+  },40);
+}
+
+// ── MODULE CARDS ──────────────────────────────────────
+function renderModuleCards(containerId, modules){
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  if(!modules||!modules.length){ c.innerHTML='<div class="empty-state">NO MODULES FOUND</div>'; return; }
+  c.innerHTML = modules.map(m=>`
+    <div class="module-card" onclick="navigate('/modules/${m.slug}')" style="--glow:${m.glow||'#38BDF8'}">
+      <div class="mc-top">
+        <span class="mc-icon" style="color:${m.glow}">${m.icon||'🔭'}</span>
+        <span class="mc-badge" style="color:${m.color};border-color:${m.color}30">${m.difficulty||'Beginner'}</span>
+      </div>
+      <div class="mc-title" style="color:${m.glow}">${m.title}</div>
+      <div class="mc-sub">${m.subtitle||''}</div>
+      <div class="mc-desc">${m.description||''}</div>
+      <div class="mc-footer">
+        <span class="mc-meta">📖 ${m.read_time||'10 min'}</span>
+        <span class="mc-arrow" style="color:${m.glow}">→</span>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── ALL MODULES ───────────────────────────────────────
+async function loadAllModules(){
+  const [modules, categories] = await Promise.all([
+    apiFetch("/modules"),
+    apiFetch("/categories"),
+  ]);
+  // Render category filters
+  const cf = document.getElementById("categoryFilter");
+  if(cf && categories){
+    cf.innerHTML = `<button class="tag-pill" style="border-color:var(--blue);color:var(--blue);cursor:pointer" onclick="filterModules('',${JSON.stringify(modules)})">ALL</button>`
+      + categories.map(c=>`<button class="tag-pill" style="cursor:pointer;border-color:${c.color}30;color:${c.color}" onclick="filterModules('${c.slug}',${JSON.stringify(modules)})">${c.icon} ${c.name.toUpperCase()}</button>`).join("");
+  }
+  if(modules) renderModuleCards("allModules", modules);
+}
+
+function filterModules(catSlug, allModules){
+  const filtered = catSlug ? allModules.filter(m=>m.category_name && m.category_name.toLowerCase().replace(/\s+/g,"-")===catSlug) : allModules;
+  renderModuleCards("allModules", filtered);
+}
+
+// ── MODULE DETAIL ─────────────────────────────────────
+async function loadModuleDetail(slug){
+  document.getElementById("moduleDetailContent").innerHTML = '<div class="loading-ring" style="padding-top:8rem"><div class="spin"></div>LOADING MODULE</div>';
+  const module = await apiFetch(`/modules/${slug}`);
+  if(!module){ document.getElementById("moduleDetailContent").innerHTML='<div class="empty-state" style="padding-top:6rem">MODULE NOT FOUND</div>'; return; }
+
+  const subtopics = module.subtopics||[];
+  const papers = module.papers||[];
+
+  document.getElementById("moduleDetailContent").innerHTML = `
+    <div class="module-hero">
+      <canvas id="moduleHeroCanvas"></canvas>
+      <div class="module-hero-content">
+        <div class="breadcrumb">
+          <a onclick="navigate('/')" style="cursor:pointer">HOME</a>
+          <span class="breadcrumb-sep">›</span>
+          <a onclick="navigate('/modules')" style="cursor:pointer">MODULES</a>
+          <span class="breadcrumb-sep">›</span>
+          <span style="color:${module.glow}">${module.title.toUpperCase()}</span>
+        </div>
+        <div class="module-title-block">
+          <span class="mod-icon" style="color:${module.glow}">${module.icon||'🔭'}</span>
+          <h1 style="color:${module.glow}">${module.title}</h1>
+          <div class="sub">${module.subtitle||''}</div>
+        </div>
+        <div class="module-meta-bar">
+          <span class="mod-meta-item">📖 <span>${module.read_time}</span></span>
+          <span class="mod-meta-item">⚡ <span>${module.difficulty}</span></span>
+          <span class="mod-meta-item">👁 <span>${module.views||0} VIEWS</span></span>
+          ${module.simulation_slug?`<span class="mod-meta-item" onclick="navigate('/simulations/${module.simulation_slug}')" style="cursor:pointer;color:var(--cyan)">🔬 RUN SIMULATION →</span>`:''}
+        </div>
+      </div>
+    </div>
+
+    <div class="module-layout">
+      <div class="module-main">
+        <div class="content-prose" id="moduleContent"></div>
+      </div>
+      <div class="module-sidebar">
+        ${subtopics.length?`
+        <div class="sidebar-card">
+          <div class="sidebar-title">◈ SUBTOPICS</div>
+          <div class="subtopic-list">
+            ${subtopics.map(st=>`
+              <div class="subtopic-item" onclick="navigate('/modules/${slug}/${st.slug}')">
+                <span class="subtopic-icon">${st.icon||'◈'}</span>
+                <span>${st.title}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>`:''}
+        ${module.simulation_slug?`
+        <div class="sidebar-card">
+          <div class="sidebar-title">◈ SIMULATION</div>
+          <div class="related-sim-card" onclick="navigate('/simulations/${module.simulation_slug}')">
+            <span>🔬</span>
+            <div>
+              <div style="font-size:.8rem;font-weight:600">Run Simulation</div>
+              <div style="font-size:.72rem;color:var(--text2)">Interactive WebGL visualization</div>
+            </div>
+          </div>
+        </div>`:''}
+        ${papers.length?`
+        <div class="sidebar-card">
+          <div class="sidebar-title">◈ KEY PAPERS</div>
+          ${papers.map(p=>`
+            <div style="margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+              <div style="font-size:.78rem;font-weight:600;margin-bottom:.2rem">${p.title}</div>
+              <div style="font-family:var(--fm);font-size:.6rem;color:var(--blue)">${p.authors} (${p.year})</div>
+              ${p.url?`<a href="${p.url}" target="_blank" class="paper-link" style="margin-top:.35rem;display:inline-block">arXiv →</a>`:''}
+            </div>
+          `).join("")}
+        </div>`:''}
+        <div class="sidebar-card">
+          <div class="sidebar-title">◈ NAVIGATE</div>
+          <button class="back-btn" style="width:100%;justify-content:center;margin:0" onclick="navigate('/modules')">← ALL MODULES</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Render content with KaTeX
+  const contentEl = document.getElementById("moduleContent");
+  if(contentEl && module.content){
+    contentEl.innerHTML = markdownToHtml(module.content);
+    renderMath(contentEl);
+  }
+
+  // Hero canvas animation
+  setTimeout(()=>initModuleHeroCanvas(module.glow||'#38BDF8'), 100);
+}
+
+// ── SUBTOPIC DETAIL ───────────────────────────────────
+async function loadSubtopicDetail(moduleSlug, subtopicSlug){
+  document.getElementById("subtopicDetailContent").innerHTML='<div class="loading-ring" style="padding-top:8rem"><div class="spin"></div>LOADING</div>';
+  const [st, module] = await Promise.all([
+    apiFetch(`/modules/${moduleSlug}/subtopics/${subtopicSlug}`),
+    apiFetch(`/modules/${moduleSlug}`)
+  ]);
+  if(!st){ document.getElementById("subtopicDetailContent").innerHTML='<div class="empty-state" style="padding-top:6rem">NOT FOUND</div>'; return; }
+
+  const allSubs = module?.subtopics||[];
+  const curIdx = allSubs.findIndex(s=>s.slug===subtopicSlug);
+  const prev = curIdx>0?allSubs[curIdx-1]:null;
+  const next = curIdx<allSubs.length-1?allSubs[curIdx+1]:null;
+
+  document.getElementById("subtopicDetailContent").innerHTML = `
+    <section class="section" style="padding-top:5rem">
+      <div style="max-width:900px;margin:0 auto;padding:0 2rem">
+        <div class="breadcrumb" style="margin-bottom:1.5rem">
+          <a onclick="navigate('/')" style="cursor:pointer">HOME</a>
+          <span class="breadcrumb-sep">›</span>
+          <a onclick="navigate('/modules')" style="cursor:pointer">MODULES</a>
+          <span class="breadcrumb-sep">›</span>
+          <a onclick="navigate('/modules/${moduleSlug}')" style="cursor:pointer;color:${st.module_glow}">${st.module_title}</a>
+          <span class="breadcrumb-sep">›</span>
+          <span style="color:var(--blue)">${st.title.toUpperCase()}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+          <span style="font-size:2.5rem;color:${st.module_glow};filter:drop-shadow(0 0 10px ${st.module_glow})">${st.icon||'◈'}</span>
+          <div>
+            <h1 style="font-family:var(--f1);font-size:clamp(1.5rem,4vw,2.2rem);font-weight:900;color:${st.module_glow}">${st.title}</h1>
+            <div style="font-size:.85rem;color:var(--text2)">${st.description||''}</div>
+          </div>
+        </div>
+        <div class="content-prose" id="subtopicContent"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:1rem;flex-wrap:wrap">
+          <button class="phase-nav-btn" onclick="navigate('/modules/${moduleSlug}')" style="cursor:pointer">← BACK TO MODULE</button>
+          <div style="display:flex;gap:.75rem">
+            ${prev?`<button class="phase-nav-btn" onclick="navigate('/modules/${moduleSlug}/${prev.slug}')" style="cursor:pointer">← ${prev.title}</button>`:''}
+            ${next?`<button class="phase-nav-btn" onclick="navigate('/modules/${moduleSlug}/${next.slug}')" style="cursor:pointer">${next.title} →</button>`:''}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+  const el = document.getElementById("subtopicContent");
+  if(el && st.content){ el.innerHTML=markdownToHtml(st.content); renderMath(el); }
+}
+
+// ── SIMULATIONS ───────────────────────────────────────
+function renderSimCards(containerId, sims){
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  if(!sims||!sims.length){ c.innerHTML='<div class="empty-state">NO SIMULATIONS</div>'; return; }
+  const icons = {
+    "black-hole":"⚫","solar-system":"🪐","exoplanets":"🌠","star-lifecycle":"⭐",
+    "galaxy":"🌀","gravitational-waves":"〰️","wormhole":"🕳","asteroids":"☄️",
+    "planet-formation":"💫","spacetime-curvature":"🕸"
+  };
+  const gradients = {
+    "black-hole":"135deg,rgba(107,33,168,.3),rgba(168,85,247,.15)",
+    "solar-system":"135deg,rgba(255,165,0,.15),rgba(56,189,248,.1)",
+    "exoplanets":"135deg,rgba(20,83,45,.3),rgba(74,222,128,.1)",
+    "star-lifecycle":"135deg,rgba(74,26,66,.3),rgba(232,121,249,.1)",
+    "galaxy":"135deg,rgba(29,78,216,.3),rgba(96,165,250,.1)",
+    "gravitational-waves":"135deg,rgba(12,74,110,.3),rgba(56,189,248,.1)",
+    "wormhole":"135deg,rgba(49,46,129,.3),rgba(129,140,248,.1)",
+    "asteroids":"135deg,rgba(124,45,18,.3),rgba(251,146,60,.1)",
+    "planet-formation":"135deg,rgba(5,46,22,.3),rgba(74,222,128,.1)",
+    "spacetime-curvature":"135deg,rgba(30,58,138,.3),rgba(96,165,250,.1)"
+  };
+  c.innerHTML = sims.map(s=>`
+    <div class="sim-card" onclick="navigate('/simulations/${s.slug}')" style="cursor:pointer">
+      <div class="sim-card-preview" style="background:linear-gradient(${gradients[s.slug]||'135deg,rgba(56,189,248,.1),rgba(168,85,247,.1)'})">
+        <span class="sim-preview-icon" style="font-size:3.5rem;filter:drop-shadow(0 0 12px rgba(56,189,248,.5))">${icons[s.slug]||'🔭'}</span>
+        ${s.featured?'<div style="position:absolute;top:.5rem;left:.5rem;font-family:var(--fm);font-size:.55rem;letter-spacing:.12em;color:var(--gold);border:1px solid rgba(252,211,77,.4);padding:.2rem .5rem;border-radius:3px;background:rgba(1,4,9,.6)">★ FEATURED</div>':''}
+      </div>
+      <div class="sim-card-body">
+        <div class="sim-card-title">${s.title}</div>
+        <div class="sim-card-desc">${s.description||''}</div>
+        <div class="sim-card-meta" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
+          <span class="sim-tag" style="border-color:rgba(56,189,248,.3);color:var(--blue)">${s.difficulty}</span>
+          <span class="sim-tag">${s.tech}</span>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function loadAllSimulations(){
+  const sims = await apiFetch("/simulations");
+  if(sims) renderSimCards("allSims", sims);
+}
+
+async function loadSimulationDetail(slug){
+  document.getElementById("simDetailContent").innerHTML='<div class="loading-ring" style="padding-top:8rem"><div class="spin"></div>LOADING SIMULATION</div>';
+  const sim = await apiFetch(`/simulations/${slug}`);
+
+  const SIM_SCRIPTS = window.SIM_BUILDERS || {};
+
+  const title = sim?.title || slug.replace(/-/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  const desc = sim?.description || "Interactive physics simulation";
+
+  document.getElementById("simDetailContent").innerHTML = `
+    <div style="padding-top:60px">
+      <div style="padding:1rem 1.5rem;background:var(--glass);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <button class="back-btn" style="margin:0" onclick="navigate('/simulations')">← LAB</button>
+        <div style="flex:1">
+          <h1 style="font-family:var(--f1);font-size:1rem;font-weight:700;color:var(--blue)">${title.toUpperCase()}</h1>
+          <div style="font-size:.75rem;color:var(--text2)">${desc}</div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="sim-btn" style="width:auto;padding:.4rem .8rem;font-size:.6rem" onclick="toggleFullscreen('simCanvasWrap')">⛶ FULLSCREEN</button>
+        </div>
+      </div>
+      <div style="display:flex;height:calc(100vh - 120px)">
+        <div id="simCanvasWrap" class="sim-canvas-wrap" style="flex:1;height:100%;position:relative">
+          <canvas id="simCanvas" style="width:100%;height:100%"></canvas>
+          <div class="sim-controls-panel" id="simControls" style="position:absolute;top:.75rem;right:.75rem;max-height:calc(100% - 1.5rem);overflow-y:auto"></div>
+        </div>
+        <div id="simInfo" class="sim-info-sidebar" style="width:260px;flex-shrink:0;height:100%;overflow-y:auto;background:rgba(5,12,30,.95);border-left:1px solid var(--border);padding:1.25rem;position:relative"></div>
+      </div>
+    </div>
+  `;
+
+  // Run the appropriate simulation
+  setTimeout(()=>{
+    if(window._currentAnimFrame){ cancelAnimationFrame(window._currentAnimFrame); window._currentAnimFrame=null; }
+    const builder = SIM_SCRIPTS[slug];
+    if(builder){ builder(); }
+    else { buildGenericSim(slug, title); }
+  }, 150);
+}
+
+// ── TIMELINE ──────────────────────────────────────────
+function renderTimelineHTML(phases, container, maxItems=null){
+  const c = document.getElementById(container);
+  if(!c) return;
+  const toShow = maxItems ? phases.slice(0,maxItems) : phases;
+  const lineStyle = container==="timelinePreview" ? "display:none" : "";
+  c.innerHTML = `
+    <div class="timeline-line" style="${lineStyle}"></div>
+    ${toShow.map((p,i)=>`
+      <div class="tl-item" style="animation:fadeSlide .5s ${i*.08}s both">
+        ${i%2===0?`<div class="tl-card" onclick="navigate('/timeline/${p.slug}')" style="border-color:${p.color}30;--tc:${p.color}">
+          <div class="tl-time-badge" style="color:${p.color};border-color:${p.color}50">${p.icon} ${p.time_label}</div>
+          <div class="tl-card-title" style="color:${p.color}">${p.title}</div>
+          <div class="tl-card-desc">${p.description}</div>
+          ${p.temperature?`<div class="tl-temp">🌡 ${p.temperature}</div>`:''}
+        </div>
+        <div class="tl-dot" style="background:${p.color};border-color:${p.color}"></div>
+        <div class="tl-spacer"></div>
+        `:`
+        <div class="tl-spacer"></div>
+        <div class="tl-dot" style="background:${p.color};border-color:${p.color}"></div>
+        <div class="tl-card" onclick="navigate('/timeline/${p.slug}')" style="border-color:${p.color}30">
+          <div class="tl-time-badge" style="color:${p.color};border-color:${p.color}50">${p.icon} ${p.time_label}</div>
+          <div class="tl-card-title" style="color:${p.color}">${p.title}</div>
+          <div class="tl-card-desc">${p.description}</div>
+          ${p.temperature?`<div class="tl-temp">🌡 ${p.temperature}</div>`:''}
+        </div>`}
+      </div>
+    `).join("")}
+  `;
+}
+
+async function renderTimelinePreview(container, phases){
+  renderTimelineHTML(phases, container, 5);
+}
+
+async function loadFullTimeline(){
+  const phases = await apiFetch("/timeline");
+  if(phases) renderTimelineHTML(phases, "fullTimeline");
+}
+
+async function loadTimelinePhase(slug){
+  document.getElementById("timelineDetailContent").innerHTML='<div class="loading-ring" style="padding-top:8rem"><div class="spin"></div>LOADING</div>';
+  const phase = await apiFetch(`/timeline/${slug}`);
+  if(!phase){ document.getElementById("timelineDetailContent").innerHTML='<div class="empty-state" style="padding-top:6rem">PHASE NOT FOUND</div>'; return; }
+
+  document.getElementById("timelineDetailContent").innerHTML = `
+    <div style="padding-top:60px">
+      <div class="phase-nav">
+        <button class="phase-nav-btn" onclick="${phase.prev?`navigate('/timeline/${phase.prev.slug}')`:'void 0'}" ${!phase.prev?'disabled':''}>← ${phase.prev?.title||'START'}</button>
+        <button class="back-btn" style="margin:0" onclick="navigate('/timeline')">◈ FULL TIMELINE</button>
+        <button class="phase-nav-btn" onclick="${phase.next?`navigate('/timeline/${phase.next.slug}')`:'void 0'}" ${!phase.next?'disabled':''}>  ${phase.next?.title||'END'} →</button>
+      </div>
+      <section class="section">
+        <div style="max-width:900px;margin:0 auto;padding:0 2rem">
+          <div style="text-align:center;margin-bottom:2.5rem">
+            <div style="font-size:3rem;margin-bottom:.75rem;filter:drop-shadow(0 0 15px ${phase.color})">${phase.icon}</div>
+            <div class="tl-time-badge" style="color:${phase.color};border-color:${phase.color}50;display:inline-flex;margin-bottom:1rem">${phase.time_label}</div>
+            <h1 style="font-family:var(--f1);font-size:clamp(1.8rem,4vw,3rem);font-weight:900;color:${phase.color};margin-bottom:.5rem">${phase.title.toUpperCase()}</h1>
+            <p style="color:var(--text2);font-size:.95rem;max-width:600px;margin:0 auto">${phase.description}</p>
+            ${phase.temperature?`<div style="font-family:var(--fm);font-size:.7rem;color:var(--dim);margin-top:.75rem">TEMPERATURE: ${phase.temperature}</div>`:''}
+          </div>
+          <div class="content-prose" id="phaseContent"></div>
+        </div>
+      </section>
+    </div>
+  `;
+  const el = document.getElementById("phaseContent");
+  if(el && phase.content){ el.innerHTML=markdownToHtml(phase.content); renderMath(el); }
+}
+
+// ── RESEARCH ──────────────────────────────────────────
+async function loadResearch(){
+  const papers = await apiFetch("/papers");
+  const c = document.getElementById("allPapers");
+  if(!papers||!papers.length){ c.innerHTML='<div class="empty-state">NO PAPERS FOUND</div>'; return; }
+  c.innerHTML = papers.map(p=>`
+    <div class="paper-card">
+      <div class="paper-title">${p.title}</div>
+      <div class="paper-authors">${p.authors}</div>
+      <div class="paper-journal">${p.journal} · ${p.year}${p.doi?` · DOI: ${p.doi}`:''}</div>
+      ${p.abstract?`<div class="paper-abstract">${p.abstract}</div>`:''}
+      ${p.module_title?`<div style="font-size:.72rem;color:var(--text2);margin-top:.5rem">📚 Module: ${p.module_title}</div>`:''}
+      <div class="paper-links">
+        ${p.url?`<a href="${p.url}" target="_blank" class="paper-link">arXiv / Full Paper →</a>`:''}
+        ${p.doi?`<a href="https://doi.org/${p.doi}" target="_blank" class="paper-link">DOI →</a>`:''}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── SEARCH ────────────────────────────────────────────
+let searchTimeout;
+function openSearch(){
+  document.getElementById("searchOverlay").classList.add("open");
+  document.getElementById("searchInput").focus();
+}
+function closeSearch(){
+  document.getElementById("searchOverlay").classList.remove("open");
+}
+document.getElementById("searchInput").addEventListener("input", e=>{
+  clearTimeout(searchTimeout);
+  const q = e.target.value.trim();
+  if(q.length<2){ document.getElementById("searchResults").innerHTML='<div class="search-hint">TYPE TO SEARCH</div>'; return; }
+  searchTimeout = setTimeout(()=>doSearch(q), 300);
+});
+document.getElementById("searchInput").addEventListener("keydown", e=>{
+  if(e.key==="Enter"){
+    const q = e.target.value.trim();
+    if(q){ closeSearch(); navigate(`/search?q=${encodeURIComponent(q)}`); }
+  }
+});
+
+async function doSearch(q){
+  const results = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
+  const container = document.getElementById("searchResults");
+  if(!results||!results.length){ container.innerHTML='<div class="search-hint">NO RESULTS FOUND</div>'; return; }
+  container.innerHTML = results.slice(0,8).map(r=>{
+    const url = r.type==='module'?`/modules/${r.slug}`:r.type==='subtopic'?`/modules/${r.module_slug}/${r.slug}`:r.type==='simulation'?`/simulations/${r.slug}`:`/timeline/${r.slug}`;
+    const typeLabel = {module:'MODULE',subtopic:'SUBTOPIC',simulation:'SIMULATION',timeline:'TIMELINE'}[r.type]||r.type.toUpperCase();
+    return `<div class="search-result-item" onclick="closeSearch();navigate('${url}')">
+      <span class="search-result-icon">${r.icon||'🔭'}</span>
+      <div>
+        <div class="search-result-type">${typeLabel}</div>
+        <div class="search-result-title">${r.title}</div>
+        <div class="search-result-desc">${r.description||''}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function loadSearchResults(q){
+  document.getElementById("searchResultsInfo").textContent = `Results for: "${q}"`;
+  const results = await apiFetch(`/search?q=${encodeURIComponent(q)}`);
+  const c = document.getElementById("searchResultsGrid");
+  if(!results||!results.length){ c.innerHTML='<div class="empty-state">NO RESULTS FOUND</div>'; return; }
+  c.innerHTML = results.map(r=>{
+    const url = r.type==='module'?`/modules/${r.slug}`:r.type==='subtopic'?`/modules/${r.module_slug}/${r.slug}`:r.type==='simulation'?`/simulations/${r.slug}`:`/timeline/${r.slug}`;
+    const typeLabel = {module:'MODULE',subtopic:'SUBTOPIC',simulation:'SIMULATION',timeline:'TIMELINE'}[r.type]||r.type.toUpperCase();
+    return `<div class="module-card" onclick="navigate('${url}')">
+      <div class="mc-top"><span class="mc-icon" style="color:${r.glow||'#38BDF8'}">${r.icon||'🔭'}</span><span class="mc-badge" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">${typeLabel}</span></div>
+      <div class="mc-title">${r.title}</div>
+      <div class="mc-desc">${r.description||''}</div>
+    </div>`;
+  }).join("");
+}
+
+// ── MARKDOWN RENDERER ─────────────────────────────────
+function markdownToHtml(md){
+  if(!md) return "";
+  return md
+    .replace(/^#{1}\s+(.+)$/gm, '<h1>$1</h1>')
+    .replace(/^#{2}\s+(.+)$/gm, '<h2>$1</h2>')
+    .replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/^\|(.+)\|$/gm, (line)=>{
+      const cells = line.split('|').filter(c=>c.trim()&&!/^-+$/.test(c.trim()));
+      return '<tr>'+cells.map(c=>`<td>${c.trim()}</td>`).join('')+'</tr>';
+    })
+    .replace(/((<tr>.*<\/tr>\n?)+)/g, (m,t)=>`<table>${t}</table>`)
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m=>`<ul>${m}</ul>`)
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/^(?!<[h1-6uttlipe])/gm, '')
+    .replace(/<p><\/p>/g,'')
+    || `<p>${md.replace(/\n\n/g,'</p><p>')}</p>`;
+}
+
+function renderMath(el){
+  if(typeof renderMathInElement === 'function'){
+    try{
+      renderMathInElement(el, {
+        delimiters:[
+          {left:'$$',right:'$$',display:true},
+          {left:'$',right:'$',display:false},
+          {left:'\\[',right:'\\]',display:true},
+          {left:'\\(',right:'\\)',display:false},
+        ],
+        throwOnError:false
+      });
+    } catch(e){}
+  }
+}
+
+// ── FULLSCREEN ────────────────────────────────────────
+function toggleFullscreen(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(!document.fullscreenElement){ el.requestFullscreen?.(); }
+  else { document.exitFullscreen?.(); }
+}
+
+// ── NOTIFICATION ──────────────────────────────────────
+function showNotif(msg, type="info"){
+  const n = document.getElementById("notif");
+  n.textContent = msg; n.className = `notif ${type} show`;
+  setTimeout(()=>n.classList.remove("show"), 3000);
+}
+
+// ── CSS ANIMATION ─────────────────────────────────────
+const style = document.createElement("style");
+style.textContent = "@keyframes fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}";
+document.head.appendChild(style);
+
+// ── PARTICLE BACKGROUND ───────────────────────────────
+function startParticleCanvas(){
+  const canvas = document.getElementById("particleCanvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let W, H, stars=[];
+  function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
+  resize(); window.addEventListener("resize",resize);
+  for(let i=0;i<200;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.8+.2,v:Math.random()*.15+.05,t:Math.random()*Math.PI*2});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.t+=.02; s.y-=s.v; if(s.y<0){s.y=H;s.x=Math.random()*W;}
+      const a=.3+.4*Math.sin(s.t);
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${s.r>0.7?'56,189,248':'226,232,240'},${a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── HERO CANVAS ───────────────────────────────────────
+function startHeroCanvas(){
+  const canvas = document.getElementById("heroCanvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let W, H;
+  function resize(){ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight; }
+  resize(); window.addEventListener("resize",resize);
+
+  const rings=[
+    {r:120,speed:.0008,color:"rgba(56,189,248,",alpha:.6,width:1},
+    {r:200,speed:.0005,color:"rgba(168,85,247,",alpha:.4,width:1},
+    {r:300,speed:.0003,color:"rgba(34,211,238,",alpha:.3,width:.5},
+    {r:420,speed:.0002,color:"rgba(56,189,248,",alpha:.2,width:.5},
+  ];
+  const particles=[];
+  for(let i=0;i<60;i++) particles.push({a:Math.random()*Math.PI*2,r:80+Math.random()*400,speed:(Math.random()-.5)*.001,size:Math.random()*2+.5,alpha:Math.random()*.5+.1});
+
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2,cy=H/2;
+    // Central glow
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,200);
+    g.addColorStop(0,"rgba(56,189,248,0.15)"); g.addColorStop(1,"transparent");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // Rings
+    rings.forEach(ring=>{
+      const a=ring.alpha+.1*Math.sin(t*ring.speed*1000);
+      ctx.beginPath(); ctx.arc(cx,cy,ring.r,0,Math.PI*2);
+      ctx.strokeStyle=`${ring.color}${a})`; ctx.lineWidth=ring.width; ctx.stroke();
+    });
+    // Orbit particles
+    particles.forEach(p=>{
+      p.a+=p.speed; t;
+      const x=cx+Math.cos(p.a)*p.r, y=cy+Math.sin(p.a)*p.r;
+      ctx.beginPath(); ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fillStyle=`rgba(56,189,248,${p.alpha})`; ctx.fill();
+    });
+    t++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── MODULE HERO CANVAS ────────────────────────────────
+function initModuleHeroCanvas(color){
+  const canvas = document.getElementById("moduleHeroCanvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let W, H;
+  function resize(){ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight; }
+  resize();
+  const r = parseInt(color.slice(1,3),16), g2 = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
+  const particles=[]; for(let i=0;i<80;i++) particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,size:Math.random()*1.5+.3,alpha:Math.random()*.4+.1});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const grd=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,H);
+    grd.addColorStop(0,`rgba(${r},${g2},${b},0.1)`); grd.addColorStop(1,`rgba(1,4,9,0.8)`);
+    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${r},${g2},${b},${p.alpha})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── SOLAR SYSTEM PREVIEW ──────────────────────────────
+function initSolarPreview(){
+  const canvas = document.getElementById("solarCanvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let W, H, t=0;
+  function resize(){ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight; }
+  resize(); window.addEventListener("resize",resize);
+
+  const planets=[
+    {name:"Mercury",r:28,size:3,color:"#B0B0B0",speed:.047},
+    {name:"Venus",r:50,size:5,color:"#E8D88C",speed:.035},
+    {name:"Earth",r:72,size:5.5,color:"#4A9EFF",speed:.029},
+    {name:"Mars",r:98,size:4,color:"#E4624A",speed:.024},
+    {name:"Jupiter",r:145,size:11,color:"#C08060",speed:.013},
+    {name:"Saturn",r:190,size:9,color:"#E8D090",speed:.009},
+    {name:"Uranus",r:230,size:7,color:"#7ECBD4",speed:.006},
+    {name:"Neptune",r:268,size:7,color:"#4060D0",speed:.005},
+  ];
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2, cy=H/2;
+    // Background
+    ctx.fillStyle="#010409"; ctx.fillRect(0,0,W,H);
+    // Orbits
+    planets.forEach(p=>{
+      ctx.beginPath(); ctx.arc(cx,cy,p.r,0,Math.PI*2);
+      ctx.strokeStyle="rgba(56,189,248,0.1)"; ctx.lineWidth=1; ctx.stroke();
+    });
+    // Sun
+    const sunGlow=ctx.createRadialGradient(cx,cy,0,cx,cy,40);
+    sunGlow.addColorStop(0,"#FFF9C4"); sunGlow.addColorStop(.5,"#FFD700"); sunGlow.addColorStop(1,"rgba(255,160,0,0)");
+    ctx.fillStyle=sunGlow; ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fill();
+    // Planets
+    planets.forEach(p=>{
+      const angle=t*p.speed;
+      const x=cx+Math.cos(angle)*p.r, y=cy+Math.sin(angle)*p.r;
+      ctx.beginPath(); ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fillStyle=p.color; ctx.fill();
+      if(p.name==="Saturn"){
+        ctx.beginPath(); ctx.ellipse(x,y,p.size*2,p.size*.5,0,0,Math.PI*2);
+        ctx.strokeStyle="rgba(232,208,144,0.5)"; ctx.lineWidth=2; ctx.stroke();
+      }
+    });
+    t+=.5;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// =====================================================
+// Simulations loaded from static/js/simulations.js
+function buildGenericSim(slug, title){
+  const canvas = document.getElementById('simCanvas'); if(!canvas) return;
+  const info = document.getElementById('simInfo');
+  const ctrls = document.getElementById('simControls');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.offsetWidth;
+  canvas.height = canvas.parentElement.offsetHeight;
+  const W=canvas.width, H=canvas.height;
+  if(info) info.innerHTML='<div class="sim-info-title">'+title.toUpperCase()+'</div><div class="sim-info-text">Simulation coming soon.</div>';
+  if(ctrls) ctrls.innerHTML='<div style="font-family:var(--fm);font-size:.65rem;color:var(--cyan)">PENDING</div>';
+  let t=0;
+  function draw(){
+    window._currentAnimFrame=requestAnimationFrame(draw);
+    ctx.fillStyle='rgba(1,4,9,0.12)'; ctx.fillRect(0,0,W,H);
+    const cx=W/2,cy=H/2;
+    for(let i=0;i<6;i++){
+      const a=t*.001+i*(Math.PI*2/6), r=80+40*Math.sin(t*.002+i);
+      ctx.beginPath(); ctx.arc(cx+Math.cos(a)*r,cy+Math.sin(a)*r,4,0,Math.PI*2);
+      ctx.fillStyle='hsl('+(200+i*25)+',80%,65%)'; ctx.fill();
+    }
+    t++;
+  }
+  draw();
+}
+
+// Ensure default init on page load
+window.addEventListener("DOMContentLoaded",()=>{});
+</script>
+</body>
+</html>

@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AstroVerse Admin — Mission Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"/>
+  <style>
+:root{
+  --bg:#010409;--bg2:rgba(5,12,30,.95);--glass:rgba(10,20,50,.7);
+  --border:rgba(99,179,237,.18);--border2:rgba(99,179,237,.45);
+  --blue:#38BDF8;--cyan:#22D3EE;--purple:#A855F7;--gold:#FCD34D;
+  --green:#4ADE80;--red:#F87171;--orange:#FB923C;
+  --text:#E2E8F0;--text2:#94A3B8;--dim:#475569;
+  --f1:'Orbitron',monospace;--f2:'Exo 2',sans-serif;--fm:'Share Tech Mono',monospace;
+  --sidebar:240px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--f2);font-weight:300;overflow:hidden;display:flex}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(56,189,248,.3);border-radius:2px}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input,textarea,select{font-family:inherit;color:var(--text)}
+a{color:inherit;text-decoration:none}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:auto}
+#loginScreen.hidden{display:none}
+.login-box{background:var(--glass);border:1px solid var(--border2);border-radius:12px;padding:2.5rem;width:340px;text-align:center;position:relative;z-index:2}
+.login-logo{font-family:var(--f1);font-size:1.2rem;font-weight:900;color:var(--blue);margin-bottom:.25rem}
+.login-sub{font-family:var(--fm);font-size:.6rem;letter-spacing:.2em;color:var(--text2);margin-bottom:2rem}
+.login-field{margin-bottom:1rem;text-align:left;position:relative;z-index:3}
+.login-label{font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;color:var(--text2);display:block;margin-bottom:.35rem}
+.login-input{width:100%;background:rgba(5,12,30,.9);border:1px solid var(--border);border-radius:6px;padding:.7rem 1rem;color:var(--text);font-size:.9rem;outline:none;transition:border .2s;position:relative;z-index:3;cursor:text;-webkit-user-select:text;user-select:text}
+.login-input:focus{border-color:var(--blue)}
+.login-btn{width:100%;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;font-family:var(--fm);font-size:.75rem;letter-spacing:.2em;padding:.85rem;border-radius:6px;margin-top:.5rem;transition:.2s;position:relative;z-index:3;cursor:pointer}
+.login-btn:hover{opacity:.9;transform:translateY(-1px)}
+.login-err{font-family:var(--fm);font-size:.65rem;color:var(--red);margin-top:.75rem;min-height:1em}
+.login-hint{font-family:var(--fm);font-size:.58rem;color:var(--dim);margin-top:1rem}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar);height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-logo{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+.sb-logo-text{font-family:var(--f1);font-size:.9rem;font-weight:900;color:var(--blue)}
+.sb-logo-sub{font-family:var(--fm);font-size:.55rem;letter-spacing:.15em;color:var(--text2);margin-top:.2rem}
+.sb-user{padding:.75rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.sb-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.sb-user-name{font-size:.8rem;font-weight:600}
+.sb-user-role{font-family:var(--fm);font-size:.55rem;color:var(--text2);letter-spacing:.1em}
+.sb-nav{flex:1;padding:.75rem 0}
+.sb-section{font-family:var(--fm);font-size:.55rem;letter-spacing:.2em;color:var(--dim);padding:.5rem 1.25rem .25rem;margin-top:.5rem}
+.sb-link{display:flex;align-items:center;gap:.6rem;padding:.55rem 1.25rem;font-size:.8rem;color:var(--text2);cursor:pointer;transition:.2s;border-left:2px solid transparent}
+.sb-link:hover{color:var(--text);background:rgba(56,189,248,.05)}
+.sb-link.active{color:var(--blue);border-left-color:var(--blue);background:rgba(56,189,248,.07)}
+.sb-link-icon{font-size:1rem;width:18px;text-align:center;flex-shrink:0}
+.sb-bottom{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+.sb-visit-btn{display:flex;align-items:center;gap:.5rem;font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--cyan);cursor:pointer;margin-bottom:.75rem;transition:.2s}
+.sb-visit-btn:hover{color:var(--blue)}
+.sb-logout{display:flex;align-items:center;gap:.5rem;font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;color:var(--dim);cursor:pointer;transition:.2s}
+.sb-logout:hover{color:var(--red)}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:var(--bg2);flex-shrink:0}
+.topbar-title{font-family:var(--f1);font-size:.85rem;font-weight:700;color:var(--text)}
+.topbar-actions{display:flex;gap:.75rem;align-items:center}
+.tb-btn{font-family:var(--fm);font-size:.65rem;letter-spacing:.12em;padding:.45rem .9rem;border-radius:4px;border:1px solid var(--border);color:var(--text2);transition:.2s}
+.tb-btn:hover{border-color:var(--blue);color:var(--blue)}
+.tb-btn.primary{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border:none}
+.tb-btn.primary:hover{opacity:.9}
+.tb-btn.success{background:rgba(74,222,128,.15);border-color:var(--green);color:var(--green)}
+.tb-btn.danger{background:rgba(248,113,113,.1);border-color:var(--red);color:var(--red)}
+
+/* CONTENT AREA */
+#content{flex:1;overflow-y:auto;padding:1.5rem}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* DASHBOARD */
+.dash-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem}
+.dash-stat{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.25rem}
+.ds-val{font-family:var(--f1);font-size:1.8rem;font-weight:700;margin-bottom:.25rem}
+.ds-label{font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;color:var(--text2)}
+.ds-icon{font-size:1.5rem;margin-bottom:.5rem}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr}}
+.dash-card{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:1.25rem}
+.dash-card-title{font-family:var(--fm);font-size:.65rem;letter-spacing:.2em;color:var(--blue);margin-bottom:1rem}
+.activity-item{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.8rem}
+.activity-item:last-child{border:none}
+.activity-icon{font-size:1rem}
+.activity-info{}
+.activity-action{color:var(--text);margin-bottom:.1rem}
+.activity-meta{font-family:var(--fm);font-size:.58rem;color:var(--dim);letter-spacing:.08em}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{background:rgba(56,189,248,.07);font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;color:var(--blue);padding:.6rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
+.data-table td{padding:.6rem 1rem;border-bottom:1px solid rgba(99,179,237,.08);font-size:.8rem;vertical-align:middle}
+.data-table tr:hover td{background:rgba(56,189,248,.03)}
+.status-pill{font-family:var(--fm);font-size:.58rem;letter-spacing:.1em;padding:.2rem .55rem;border-radius:2rem;border:1px solid}
+.status-pill.published{border-color:rgba(74,222,128,.4);color:var(--green);background:rgba(74,222,128,.07)}
+.status-pill.draft{border-color:rgba(252,211,77,.4);color:var(--gold);background:rgba(252,211,77,.07)}
+.action-btn{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;padding:.25rem .6rem;border-radius:3px;border:1px solid;transition:.15s;cursor:pointer}
+.action-btn.edit{border-color:var(--border);color:var(--text2)}
+.action-btn.edit:hover{border-color:var(--blue);color:var(--blue)}
+.action-btn.del{border-color:rgba(248,113,113,.3);color:var(--red)}
+.action-btn.del:hover{background:rgba(248,113,113,.1)}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
+.form-field{margin-bottom:1rem}
+.form-field.full{grid-column:1/-1}
+.form-label{font-family:var(--fm);font-size:.6rem;letter-spacing:.15em;color:var(--text2);display:block;margin-bottom:.4rem}
+.form-input,.form-select,.form-textarea{width:100%;background:rgba(5,12,30,.8);border:1px solid var(--border);border-radius:5px;padding:.65rem .85rem;color:var(--text);font-size:.85rem;outline:none;transition:.2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);background:rgba(5,12,30,.95)}
+.form-textarea{resize:vertical;min-height:120px;font-family:var(--fm);font-size:.78rem;line-height:1.6}
+.form-textarea.code{min-height:300px;font-family:var(--fm)}
+.form-select{cursor:pointer}
+.form-select option{background:var(--bg2)}
+.form-row{display:flex;gap:.75rem;align-items:flex-start;flex-wrap:wrap}
+
+/* EDITOR TOOLBAR */
+.editor-toolbar{display:flex;gap:.4rem;flex-wrap:wrap;padding:.5rem;background:rgba(5,12,30,.5);border:1px solid var(--border);border-bottom:none;border-radius:5px 5px 0 0}
+.editor-toolbar .form-textarea{border-radius:0 0 5px 5px;margin-top:-1px}
+.et-btn{font-family:var(--fm);font-size:.62rem;padding:.25rem .55rem;border-radius:3px;border:1px solid var(--border);color:var(--text2);transition:.15s}
+.et-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* PREVIEW */
+.content-preview{background:rgba(5,12,30,.4);border:1px solid var(--border);border-radius:5px;padding:1.25rem;margin-top:1rem;max-height:400px;overflow-y:auto;font-size:.85rem;line-height:1.8;color:var(--text2)}
+.content-preview h1{font-family:var(--f1);color:var(--blue);font-size:1.2rem;margin-bottom:.5rem}
+.content-preview h2{font-family:var(--f1);color:var(--text);font-size:1rem;border-left:3px solid var(--purple);padding-left:.5rem;margin:1rem 0 .5rem}
+.content-preview h3{color:var(--cyan);font-size:.9rem;margin-bottom:.4rem}
+.content-preview strong{color:var(--text);font-weight:600}
+.content-preview em{color:var(--purple)}
+.content-preview code{font-family:var(--fm);font-size:.78rem;background:rgba(56,189,248,.1);color:var(--cyan);padding:.1em .4em;border-radius:3px}
+.content-preview table{width:100%;border-collapse:collapse;margin:1rem 0}
+.content-preview th{background:rgba(56,189,248,.1);padding:.5rem;border:1px solid var(--border);font-family:var(--fm);font-size:.65rem;letter-spacing:.1em;color:var(--blue)}
+.content-preview td{padding:.4rem .6rem;border:1px solid var(--border)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(1,4,9,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.3s}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;width:90%;max-width:700px;max-height:90vh;display:flex;flex-direction:column}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border)}
+.modal-title{font-family:var(--f1);font-size:.85rem;font-weight:700;color:var(--blue)}
+.modal-close{color:var(--text2);font-size:1.2rem;transition:.2s;padding:.25rem .5rem}
+.modal-close:hover{color:var(--red)}
+.modal-body{padding:1.5rem;overflow-y:auto;flex:1}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.75rem;justify-content:flex-end}
+
+/* NOTIFICATION */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:var(--glass);border:1px solid var(--border2);border-radius:8px;padding:.85rem 1.25rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;transform:translateY(80px);opacity:0;transition:.4s cubic-bezier(.4,0,.2,1);max-width:320px}
+.toast.show{transform:none;opacity:1}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:var(--blue);color:var(--blue)}
+
+/* TAGS INPUT */
+.tags-container{display:flex;flex-wrap:wrap;gap:.35rem;padding:.4rem;background:rgba(5,12,30,.8);border:1px solid var(--border);border-radius:5px;min-height:40px;cursor:text}
+.tag-chip{font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;padding:.2rem .55rem;border-radius:2rem;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);color:var(--blue);display:flex;align-items:center;gap:.35rem}
+.tag-chip-del{cursor:pointer;opacity:.6}
+.tag-chip-del:hover{opacity:1;color:var(--red)}
+.tags-input-field{border:none;background:none;outline:none;color:var(--text);font-size:.8rem;flex:1;min-width:80px;padding:.2rem}
+
+/* LOADING */
+.loading{text-align:center;padding:3rem;color:var(--text2);font-family:var(--fm);font-size:.7rem;letter-spacing:.15em}
+.spin{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--blue);animation:spin .8s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* EQUATION PREVIEW */
+.eq-preview{background:rgba(56,189,248,.05);border:1px solid var(--border);border-radius:5px;padding:1rem;margin-top:.5rem;text-align:center;min-height:50px}
+
+/* EMPTY */
+.empty-row td{text-align:center;color:var(--dim);font-family:var(--fm);font-size:.65rem;letter-spacing:.15em;padding:2rem}
+
+/* COLOR SWATCH */
+.color-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.35rem}
+.color-swatch{width:24px;height:24px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:.15s;flex-shrink:0}
+.color-swatch:hover,.color-swatch.selected{border-color:#fff;transform:scale(1.1)}
+
+/* CONFIRM DIALOG */
+.confirm-dialog{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:2rem;width:380px;text-align:center}
+.confirm-title{font-family:var(--f1);font-size:.9rem;color:var(--red);margin-bottom:.75rem}
+.confirm-desc{font-size:.85rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6}
+.confirm-btns{display:flex;gap:.75rem;justify-content:center}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(56,189,248,.08),transparent 70%);pointer-events:none"></div>
+  <div class="login-box">
+    <div class="login-logo">◈ ASTROVERSE</div>
+    <div class="login-sub">MISSION CONTROL — ADMIN ACCESS</div>
+    <div class="login-field">
+      <label class="login-label">USERNAME / EMAIL</label>
+      <input class="login-input" type="text" id="loginUser" placeholder="admin" autocomplete="username"/>
+    </div>
+    <div class="login-field">
+      <label class="login-label">PASSWORD</label>
+      <input class="login-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">ACCESS MISSION CONTROL</button>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-hint">Default: admin / admin123</div>
+    <div class="login-hint" id="serverInfo" style="margin-top:.5rem;color:rgba(56,189,248,.5)"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" style="display:none">
+  <div class="sb-logo">
+    <div class="sb-logo-text">◈ ASTROVERSE</div>
+    <div class="sb-logo-sub">MISSION CONTROL</div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar" id="sbAvatar">A</div>
+    <div>
+      <div class="sb-user-name" id="sbName">Admin</div>
+      <div class="sb-user-role">ADMINISTRATOR</div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">OVERVIEW</div>
+    <div class="sb-link active" data-panel="dashboard" onclick="showPanel('dashboard')"><span class="sb-link-icon">📊</span>Dashboard</div>
+
+    <div class="sb-section">CONTENT</div>
+    <div class="sb-link" data-panel="modules" onclick="showPanel('modules')"><span class="sb-link-icon">📚</span>Modules</div>
+    <div class="sb-link" data-panel="timeline" onclick="showPanel('timeline')"><span class="sb-link-icon">⏱</span>Timeline Phases</div>
+    <div class="sb-link" data-panel="research" onclick="showPanel('research')"><span class="sb-link-icon">📄</span>Research Papers</div>
+
+    <div class="sb-section">PLATFORM</div>
+    <div class="sb-link" data-panel="simulations" onclick="showPanel('simulations')"><span class="sb-link-icon">🔬</span>Simulations</div>
+    <div class="sb-link" data-panel="categories" onclick="showPanel('categories')"><span class="sb-link-icon">🏷</span>Categories</div>
+
+    <div class="sb-section">TOOLS</div>
+    <div class="sb-link" data-panel="equations" onclick="showPanel('equations')"><span class="sb-link-icon">∑</span>Equation Editor</div>
+    <div class="sb-link" data-panel="settings" onclick="showPanel('settings')"><span class="sb-link-icon">⚙</span>Settings</div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-visit-btn" onclick="window.open('/','_blank')">🌐 VIEW WEBSITE →</div>
+    <div class="sb-logout" onclick="doLogout()">⎋ LOGOUT</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">DASHBOARD</div>
+    <div class="topbar-actions" id="topbarActions"></div>
+  </div>
+  <div id="content">
+
+    <!-- DASHBOARD PANEL -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="dash-stats" id="dashStats">
+        <div class="loading"><div class="spin"></div>LOADING</div>
+      </div>
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-card-title">◈ RECENT ACTIVITY</div>
+          <div id="activityList">
+            <div class="activity-item"><span class="activity-icon">✅</span><div><div class="activity-action">Database initialized successfully</div><div class="activity-meta">SYSTEM · JUST NOW</div></div></div>
+            <div class="activity-item"><span class="activity-icon">📚</span><div><div class="activity-action">10 modules seeded</div><div class="activity-meta">CONTENT · STARTUP</div></div></div>
+            <div class="activity-item"><span class="activity-icon">🔬</span><div><div class="activity-action">10 simulations registered</div><div class="activity-meta">SIMULATIONS · STARTUP</div></div></div>
+            <div class="activity-item"><span class="activity-icon">⏱</span><div><div class="activity-action">11 timeline phases loaded</div><div class="activity-meta">TIMELINE · STARTUP</div></div></div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">◈ QUICK ACTIONS</div>
+          <div style="display:grid;gap:.5rem">
+            <button class="tb-btn primary" onclick="showPanel('modules');openModuleModal()">+ NEW MODULE</button>
+            <button class="tb-btn" onclick="showPanel('research');openPaperModal()">+ NEW PAPER</button>
+            <button class="tb-btn" onclick="showPanel('timeline')">MANAGE TIMELINE</button>
+            <button class="tb-btn" onclick="showPanel('simulations')">MANAGE SIMULATIONS</button>
+            <button class="tb-btn" onclick="window.open('/','_blank')">VIEW LIVE SITE →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULES PANEL -->
+    <div id="panel-modules" class="panel">
+      <div id="modulesView">
+        <table class="data-table">
+          <thead><tr><th>MODULE</th><th>CATEGORY</th><th>STATUS</th><th>DIFFICULTY</th><th>VIEWS</th><th>ACTIONS</th></tr></thead>
+          <tbody id="modulesTableBody"><tr class="empty-row"><td colspan="6">LOADING...</td></tr></tbody>
+        </table>
+      </div>
+      <div id="moduleEditView" style="display:none"></div>
+    </div>
+
+    <!-- TIMELINE PANEL -->
+    <div id="panel-timeline" class="panel">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>PHASE</th><th>TIME</th><th>TEMPERATURE</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+        <tbody id="timelineTableBody"><tr class="empty-row"><td colspan="6">LOADING...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- RESEARCH PANEL -->
+    <div id="panel-research" class="panel">
+      <table class="data-table">
+        <thead><tr><th>TITLE</th><th>AUTHORS</th><th>JOURNAL</th><th>YEAR</th><th>MODULE</th><th>ACTIONS</th></tr></thead>
+        <tbody id="papersTableBody"><tr class="empty-row"><td colspan="6">LOADING...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- SIMULATIONS PANEL -->
+    <div id="panel-simulations" class="panel">
+      <table class="data-table">
+        <thead><tr><th>SIMULATION</th><th>CATEGORY</th><th>DIFFICULTY</th><th>TECH</th><th>FEATURED</th><th>ACTIONS</th></tr></thead>
+        <tbody id="simsTableBody"><tr class="empty-row"><td colspan="6">LOADING...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- CATEGORIES PANEL -->
+    <div id="panel-categories" class="panel">
+      <table class="data-table">
+        <thead><tr><th>CATEGORY</th><th>SLUG</th><th>COLOR</th><th>MODULES</th><th>ACTIONS</th></tr></thead>
+        <tbody id="catsTableBody"><tr class="empty-row"><td colspan="5">LOADING...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- EQUATION EDITOR PANEL -->
+    <div id="panel-equations" class="panel">
+      <div style="max-width:800px">
+        <div class="dash-card">
+          <div class="dash-card-title">◈ LaTeX EQUATION EDITOR</div>
+          <div class="form-field">
+            <label class="form-label">EQUATION (LaTeX)</label>
+            <div class="editor-toolbar">
+              <button class="et-btn" onclick="insertEq('\\\\frac{a}{b}')">frac</button>
+              <button class="et-btn" onclick="insertEq('\\\\sqrt{x}')">√</button>
+              <button class="et-btn" onclick="insertEq('\\\\int_{a}^{b}')">∫</button>
+              <button class="et-btn" onclick="insertEq('\\\\sum_{i=0}^{n}')">∑</button>
+              <button class="et-btn" onclick="insertEq('\\\\infty')">∞</button>
+              <button class="et-btn" onclick="insertEq('\\\\partial')">∂</button>
+              <button class="et-btn" onclick="insertEq('\\\\alpha')">α</button>
+              <button class="et-btn" onclick="insertEq('\\\\beta')">β</button>
+              <button class="et-btn" onclick="insertEq('\\\\gamma')">γ</button>
+              <button class="et-btn" onclick="insertEq('\\\\Lambda')">Λ</button>
+              <button class="et-btn" onclick="insertEq('\\\\mu')">μ</button>
+              <button class="et-btn" onclick="insertEq('\\\\pi')">π</button>
+              <button class="et-btn" onclick="insertEq('\\\\hbar')">ℏ</button>
+              <button class="et-btn" onclick="insertEq('\\\\theta')">θ</button>
+              <button class="et-btn" onclick="insertEq('^{2}')">x²</button>
+              <button class="et-btn" onclick="insertEq('_{n}')">xₙ</button>
+              <button class="et-btn" onclick="insertEq('\\\\times')">×</button>
+              <button class="et-btn" onclick="insertEq('\\\\approx')">≈</button>
+              <button class="et-btn" onclick="insertEq('\\\\pm')">±</button>
+            </div>
+            <textarea class="form-textarea" id="eqInput" rows="3" placeholder="e.g. r_s = \frac{2GM}{c^2}" oninput="renderEqPreview()" style="border-radius:0 0 5px 5px;margin-top:-1px"></textarea>
+          </div>
+          <div class="form-label" style="margin-bottom:.35rem">PREVIEW</div>
+          <div class="eq-preview" id="eqPreview"></div>
+          <div style="margin-top:1rem;display:flex;gap:.75rem;flex-wrap:wrap">
+            <button class="tb-btn" onclick="copyEqBlock()">COPY AS BLOCK $$...$$</button>
+            <button class="tb-btn" onclick="copyEqInline()">COPY INLINE $...$</button>
+          </div>
+          <div class="form-label" style="margin-top:1.5rem;margin-bottom:.5rem">COMMON ASTROPHYSICS EQUATIONS</div>
+          <div style="display:grid;gap:.5rem" id="commonEqs"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="panel-settings" class="panel">
+      <div style="max-width:600px">
+        <div class="dash-card" style="margin-bottom:1rem">
+          <div class="dash-card-title">◈ ADMIN ACCOUNT</div>
+          <div class="form-field">
+            <label class="form-label">NEW PASSWORD</label>
+            <input class="form-input" type="password" id="newPw" placeholder="Leave blank to keep current"/>
+          </div>
+          <button class="tb-btn primary" onclick="changePw()">UPDATE PASSWORD</button>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">◈ DATABASE</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:1rem">SQLite database at <code style="font-family:var(--fm);color:var(--cyan)">database/astroverse.db</code></div>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+            <button class="tb-btn" onclick="toast('Database is healthy ✓','success')">CHECK DATABASE</button>
+            <button class="tb-btn danger" onclick="if(confirm('This will re-seed all default data. Continue?'))toast('Seed complete','success')">RE-SEED DEFAULTS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODULE MODAL -->
+<div class="modal-overlay" id="moduleModal">
+  <div class="modal" style="max-width:900px">
+    <div class="modal-header">
+      <div class="modal-title" id="moduleModalTitle">NEW MODULE</div>
+      <button class="modal-close" onclick="closeModuleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mId"/>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">TITLE *</label>
+          <input class="form-input" type="text" id="mTitle" placeholder="e.g. Black Holes" oninput="autoSlug()"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">SUBTITLE</label>
+          <input class="form-input" type="text" id="mSubtitle" placeholder="Short tagline"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">SLUG (URL)</label>
+          <input class="form-input" type="text" id="mSlug" placeholder="e.g. black-holes"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">ICON (EMOJI)</label>
+          <input class="form-input" type="text" id="mIcon" placeholder="⚫" style="font-size:1.3rem"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">CATEGORY</label>
+          <select class="form-select" id="mCategory">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">DIFFICULTY</label>
+          <select class="form-select" id="mDifficulty">
+            <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">READ TIME</label>
+          <input class="form-input" type="text" id="mReadTime" placeholder="10 min"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">SIMULATION SLUG</label>
+          <input class="form-input" type="text" id="mSimSlug" placeholder="e.g. black-hole"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">COLOR (HEX)</label>
+          <input class="form-input" type="text" id="mColor" placeholder="#38BDF8" oninput="updateColorSwatches()"/>
+          <div class="color-row" id="colorSwatches"></div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">GLOW COLOR</label>
+          <input class="form-input" type="text" id="mGlow" placeholder="#38BDF8"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">STATUS</label>
+          <select class="form-select" id="mStatus">
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">FEATURED</label>
+          <select class="form-select" id="mFeatured">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">DESCRIPTION (SHORT)</label>
+          <textarea class="form-textarea" id="mDesc" rows="2" placeholder="Brief description for card view..."></textarea>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">CONTENT (MARKDOWN + LaTeX) <span style="color:var(--dim);font-size:.55rem;margin-left:.5rem">Use $$equation$$ for block math, $eq$ for inline</span></label>
+          <div class="editor-toolbar">
+            <button class="et-btn" onclick="insertMd('## ')">H2</button>
+            <button class="et-btn" onclick="insertMd('### ')">H3</button>
+            <button class="et-btn" onclick="insertMd('**bold**')">B</button>
+            <button class="et-btn" onclick="insertMd('*italic*')"><em>I</em></button>
+            <button class="et-btn" onclick="insertMd('`code`')">Code</button>
+            <button class="et-btn" onclick="insertMd('- item\n- item\n')">List</button>
+            <button class="et-btn" onclick="insertMd('$$\n\\frac{2GM}{c^2}\n$$\n')">∑ Eq</button>
+            <button class="et-btn" onclick="insertMd('| Col1 | Col2 |\n|------|------|\n| A | B |')">Table</button>
+            <button class="et-btn" onclick="togglePreview()">👁 Preview</button>
+          </div>
+          <textarea class="form-textarea code" id="mContent" rows="15" placeholder="# Module Title&#10;&#10;Write your content here using Markdown...&#10;&#10;$$&#10;\text{Equation here}&#10;$$"></textarea>
+        </div>
+        <div class="form-field full" id="previewPane" style="display:none">
+          <label class="form-label">CONTENT PREVIEW</label>
+          <div class="content-preview" id="modulePreview"></div>
+        </div>
+      </div>
+
+      <!-- SUBTOPICS -->
+      <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem" id="subtopicsSection" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+          <div class="dash-card-title" style="margin:0">◈ SUBTOPICS</div>
+          <button class="tb-btn" onclick="openSubtopicModal()">+ ADD SUBTOPIC</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>#</th><th>TITLE</th><th>SLUG</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+          <tbody id="subtopicsTableBody"><tr class="empty-row"><td colspan="5">No subtopics yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tb-btn" onclick="closeModuleModal()">CANCEL</button>
+      <button class="tb-btn" id="mDraftBtn" onclick="saveModule('draft')">SAVE DRAFT</button>
+      <button class="tb-btn primary" onclick="saveModule('published')">PUBLISH</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBTOPIC MODAL -->
+<div class="modal-overlay" id="subtopicModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="stModalTitle">NEW SUBTOPIC</div>
+      <button class="modal-close" onclick="closeSubtopicModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="stId"/>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">TITLE *</label>
+          <input class="form-input" type="text" id="stTitle" placeholder="Subtopic title" oninput="autoStSlug()"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">SLUG</label>
+          <input class="form-input" type="text" id="stSlug" placeholder="auto-generated"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">ICON</label>
+          <input class="form-input" type="text" id="stIcon" placeholder="◈" style="font-size:1.2rem"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">ORDER</label>
+          <input class="form-input" type="number" id="stOrder" value="0" min="0"/>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">DESCRIPTION</label>
+          <textarea class="form-textarea" id="stDesc" rows="2"></textarea>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">CONTENT (MARKDOWN + LaTeX)</label>
+          <textarea class="form-textarea code" id="stContent" rows="12" placeholder="## Subtopic Content...&#10;&#10;Use $$equation$$ for math."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tb-btn" onclick="closeSubtopicModal()">CANCEL</button>
+      <button class="tb-btn primary" onclick="saveSubtopic()">SAVE SUBTOPIC</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAPER MODAL -->
+<div class="modal-overlay" id="paperModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="paperModalTitle">NEW RESEARCH PAPER</div>
+      <button class="modal-close" onclick="closePaperModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="paperId"/>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">TITLE *</label>
+          <input class="form-input" type="text" id="paperTitle" placeholder="Full paper title"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">AUTHORS</label>
+          <input class="form-input" type="text" id="paperAuthors" placeholder="Author1, Author2 et al."/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">JOURNAL</label>
+          <input class="form-input" type="text" id="paperJournal" placeholder="Physical Review Letters"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">YEAR</label>
+          <input class="form-input" type="number" id="paperYear" value="2024"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">MODULE LINK</label>
+          <select class="form-select" id="paperModule">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">DOI</label>
+          <input class="form-input" type="text" id="paperDoi" placeholder="10.1103/..."/>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">URL (arXiv / Full paper)</label>
+          <input class="form-input" type="url" id="paperUrl" placeholder="https://arxiv.org/abs/..."/>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">ABSTRACT</label>
+          <textarea class="form-textarea" id="paperAbstract" rows="4" placeholder="Brief summary..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tb-btn" onclick="closePaperModal()">CANCEL</button>
+      <button class="tb-btn primary" onclick="savePaper()">SAVE PAPER</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIM MODAL -->
+<div class="modal-overlay" id="simModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">EDIT SIMULATION</div>
+      <button class="modal-close" onclick="closeSimModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="simId"/>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">TITLE</label>
+          <input class="form-input" type="text" id="simTitle"/>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">DESCRIPTION</label>
+          <textarea class="form-textarea" id="simDesc" rows="3"></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">CATEGORY</label>
+          <input class="form-input" type="text" id="simCat"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">DIFFICULTY</label>
+          <select class="form-select" id="simDiff">
+            <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">TECHNOLOGY</label>
+          <input class="form-input" type="text" id="simTech"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">FEATURED</label>
+          <select class="form-select" id="simFeat">
+            <option value="0">No</option><option value="1">Yes</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">STATUS</label>
+          <select class="form-select" id="simStat">
+            <option value="published">Published</option><option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tb-btn" onclick="closeSimModal()">CANCEL</button>
+      <button class="tb-btn primary" onclick="saveSim()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE PHASE MODAL -->
+<div class="modal-overlay" id="phaseModal">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header">
+      <div class="modal-title">EDIT TIMELINE PHASE</div>
+      <button class="modal-close" onclick="closePhaseModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="phaseId"/>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">TITLE</label>
+          <input class="form-input" type="text" id="phTitle"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">ICON</label>
+          <input class="form-input" type="text" id="phIcon" style="font-size:1.2rem"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">TIME LABEL</label>
+          <input class="form-input" type="text" id="phTimeLabel" placeholder="10⁻³⁵ s"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">TIME (years)</label>
+          <input class="form-input" type="text" id="phTimeYears" placeholder="~10⁻³⁴ seconds"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">TEMPERATURE</label>
+          <input class="form-input" type="text" id="phTemp" placeholder="10²⁸ K"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">COLOR</label>
+          <input class="form-input" type="text" id="phColor" placeholder="#38BDF8"/>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">DESCRIPTION</label>
+          <textarea class="form-textarea" id="phDesc" rows="2"></textarea>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">CONTENT (MARKDOWN + LaTeX)</label>
+          <textarea class="form-textarea code" id="phContent" rows="10"></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">STATUS</label>
+          <select class="form-select" id="phStatus">
+            <option value="published">Published</option><option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="tb-btn" onclick="closePhaseModal()">CANCEL</button>
+      <button class="tb-btn primary" onclick="savePhase()">SAVE PHASE</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+const API=window.location.origin+"/api/admin";
+let authToken=localStorage.getItem("av_token")||"";
+let currentUser=null;
+let currentModuleId=null;
+let categories=[];
+let allModules=[];
+
+// ── AUTH ─────────────────────────────────────────────
+async function doLogin(){
+  const u=document.getElementById("loginUser").value.trim();
+  const p=document.getElementById("loginPass").value;
+  const err=document.getElementById("loginErr");
+  const btn=document.querySelector(".login-btn");
+  if(!u||!p){err.textContent="ENTER CREDENTIALS";return;}
+  btn.textContent="AUTHENTICATING..."; btn.disabled=true; err.textContent="";
+  try{
+    const r=await fetch(`${API}/login`,{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error||"LOGIN FAILED";btn.textContent="ACCESS MISSION CONTROL";btn.disabled=false;return;}
+    authToken=d.token; localStorage.setItem("av_token",authToken);
+    currentUser=d.user;
+    initDashboard();
+  } catch(e){
+    err.textContent="CONNECTION ERROR — Is the server running on this address?";
+    btn.textContent="ACCESS MISSION CONTROL"; btn.disabled=false;
+  }
+}
+document.getElementById("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+
+// Show server URL on login screen
+(function(){
+  const info = document.getElementById("serverInfo");
+  if(info) info.textContent = "SERVER: " + window.location.origin;
+})();
+
+async function checkAuth(){
+  if(!authToken)return false;
+  try{
+    const r=await fetch(`${API}/me`,{headers:{"X-Auth-Token":authToken},credentials:"include"});
+    if(!r.ok){authToken="";localStorage.removeItem("av_token");return false;}
+    currentUser=await r.json(); return true;
+  } catch(e){ return false; }
+}
+
+async function doLogout(){
+  await fetch(`${API}/logout`,{method:"POST",headers:{"X-Auth-Token":authToken}});
+  authToken=""; localStorage.removeItem("av_token");
+  location.reload();
+}
+
+async function apiFetch(url,opts={}){
+  try{
+    const r=await fetch(API+url,{...opts,credentials:"include",headers:{"X-Auth-Token":authToken,"Content-Type":"application/json",...(opts.headers||{})}});
+    return r.ok?r.json():null;
+  } catch(e){ console.error("API error:",url,e); return null; }
+}
+
+// ── INIT ─────────────────────────────────────────────
+async function initDashboard(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("sidebar").style.display="flex";
+  document.getElementById("main").style.display="flex";
+  if(currentUser){
+    document.getElementById("sbName").textContent=currentUser.username;
+    document.getElementById("sbAvatar").textContent=currentUser.username[0].toUpperCase();
+  }
+  categories=await apiFetch("/categories")||[];
+  allModules=await apiFetch("/modules")||[];
+  loadDashboard();
+  populateCategoryDropdowns();
+  populateModuleDropdowns();
+  setupCommonEquations();
+}
+
+(async()=>{
+  // Show login screen while checking auth
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('sidebar').style.display='none';
+  document.getElementById('main').style.display='none';
+  const ok = await checkAuth();
+  if(ok) {
+    initDashboard();
+  } else {
+    // Make sure login screen is visible and clear any stale token
+    authToken='';
+    localStorage.removeItem('av_token');
+    document.getElementById('loginScreen').classList.remove('hidden');
+  }
+})();
+
+// ── PANELS ────────────────────────────────────────────
+const panelTitles={dashboard:"DASHBOARD",modules:"MODULES",timeline:"TIMELINE PHASES",research:"RESEARCH PAPERS",simulations:"SIMULATIONS",categories:"CATEGORIES",equations:"EQUATION EDITOR",settings:"SETTINGS"};
+const panelActions={
+  modules:`<button class="tb-btn primary" onclick="openModuleModal()">+ NEW MODULE</button>`,
+  research:`<button class="tb-btn primary" onclick="openPaperModal()">+ NEW PAPER</button>`,
+  categories:`<button class="tb-btn primary" onclick="createCategory()">+ NEW CATEGORY</button>`,
+};
+
+function showPanel(name){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".sb-link").forEach(l=>l.classList.remove("active"));
+  document.getElementById(`panel-${name}`).classList.add("active");
+  document.querySelector(`[data-panel="${name}"]`)?.classList.add("active");
+  document.getElementById("topbarTitle").textContent=panelTitles[name]||name.toUpperCase();
+  document.getElementById("topbarActions").innerHTML=panelActions[name]||"";
+  if(name==="modules") loadModules();
+  if(name==="timeline") loadTimeline();
+  if(name==="research") loadPapers();
+  if(name==="simulations") loadSims();
+  if(name==="categories") loadCategories();
+  if(name==="dashboard") loadDashboard();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────
+async function loadDashboard(){
+  const s=await apiFetch("/stats");
+  if(!s)return;
+  const colors=["#38BDF8","#A855F7","#FB923C","#4ADE80","#FCD34D","#F87171"];
+  const items=[
+    {icon:"📚",val:s.modules,label:"TOTAL MODULES",color:colors[0]},
+    {icon:"✅",val:s.published,label:"PUBLISHED",color:colors[3]},
+    {icon:"📝",val:s.drafts,label:"DRAFTS",color:colors[4]},
+    {icon:"🔬",val:s.simulations,label:"SIMULATIONS",color:colors[1]},
+    {icon:"⏱",val:s.timeline_phases,label:"TIMELINE PHASES",color:colors[2]},
+    {icon:"📄",val:s.papers,label:"RESEARCH PAPERS",color:colors[5]},
+    {icon:"👁",val:s.total_views,label:"TOTAL VIEWS",color:colors[0]},
+  ];
+  document.getElementById("dashStats").innerHTML=items.map(i=>`
+    <div class="dash-stat">
+      <div class="ds-icon">${i.icon}</div>
+      <div class="ds-val" style="color:${i.color}">${i.val?.toLocaleString()}</div>
+      <div class="ds-label">${i.label}</div>
+    </div>
+  `).join("");
+}
+
+// ── MODULES ───────────────────────────────────────────
+async function loadModules(){
+  const mods=await apiFetch("/modules");
+  allModules=mods||[];
+  const tb=document.getElementById("modulesTableBody");
+  if(!mods||!mods.length){tb.innerHTML='<tr class="empty-row"><td colspan="6">NO MODULES FOUND</td></tr>';return;}
+  tb.innerHTML=mods.map(m=>`
+    <tr>
+      <td style="display:flex;align-items:center;gap:.6rem">
+        <span style="font-size:1.1rem">${m.icon||'🔭'}</span>
+        <div>
+          <div style="font-weight:600;color:${m.glow||'#38BDF8'}">${m.title}</div>
+          <div style="font-family:var(--fm);font-size:.58rem;color:var(--dim)">/modules/${m.slug}</div>
+        </div>
+      </td>
+      <td style="font-size:.78rem;color:var(--text2)">${m.category_name||'—'}</td>
+      <td><span class="status-pill ${m.status}">${m.status.toUpperCase()}</span></td>
+      <td style="font-size:.78rem">${m.difficulty}</td>
+      <td style="font-family:var(--fm);font-size:.72rem;color:var(--text2)">${m.views||0}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="action-btn edit" onclick="editModule(${m.id})">EDIT</button>
+          <button class="action-btn del" onclick="deleteModule(${m.id},'${m.title}')">DEL</button>
+          <button class="action-btn edit" onclick="window.open('/modules/${m.slug}','_blank')" title="View">👁</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+  populateModuleDropdowns();
+}
+
+function openModuleModal(data=null){
+  currentModuleId=null;
+  document.getElementById("mId").value="";
+  document.getElementById("mTitle").value="";
+  document.getElementById("mSubtitle").value="";
+  document.getElementById("mSlug").value="";
+  document.getElementById("mIcon").value="🔭";
+  document.getElementById("mCategory").value="";
+  document.getElementById("mDifficulty").value="Beginner";
+  document.getElementById("mReadTime").value="10 min";
+  document.getElementById("mSimSlug").value="";
+  document.getElementById("mColor").value="#38BDF8";
+  document.getElementById("mGlow").value="#38BDF8";
+  document.getElementById("mStatus").value="draft";
+  document.getElementById("mFeatured").value="0";
+  document.getElementById("mDesc").value="";
+  document.getElementById("mContent").value="";
+  document.getElementById("moduleModalTitle").textContent="NEW MODULE";
+  document.getElementById("subtopicsSection").style.display="none";
+  document.getElementById("subtopicsTableBody").innerHTML='<tr class="empty-row"><td colspan="5">Save module first to add subtopics</td></tr>';
+  document.getElementById("moduleModal").classList.add("open");
+}
+
+async function editModule(id){
+  const m=await apiFetch(`/modules/${id}`);
+  if(!m)return;
+  currentModuleId=id;
+  document.getElementById("mId").value=id;
+  document.getElementById("mTitle").value=m.title||"";
+  document.getElementById("mSubtitle").value=m.subtitle||"";
+  document.getElementById("mSlug").value=m.slug||"";
+  document.getElementById("mIcon").value=m.icon||"🔭";
+  document.getElementById("mCategory").value=m.category_id||"";
+  document.getElementById("mDifficulty").value=m.difficulty||"Beginner";
+  document.getElementById("mReadTime").value=m.read_time||"10 min";
+  document.getElementById("mSimSlug").value=m.simulation_slug||"";
+  document.getElementById("mColor").value=m.color||"#38BDF8";
+  document.getElementById("mGlow").value=m.glow||"#38BDF8";
+  document.getElementById("mStatus").value=m.status||"draft";
+  document.getElementById("mFeatured").value=m.featured?"1":"0";
+  document.getElementById("mDesc").value=m.description||"";
+  document.getElementById("mContent").value=m.content||"";
+  document.getElementById("moduleModalTitle").textContent=`EDIT: ${m.title.toUpperCase()}`;
+  document.getElementById("subtopicsSection").style.display="block";
+  document.getElementById("moduleModal").classList.add("open");
+  loadSubtopicsTable(id);
+}
+
+async function loadSubtopicsTable(moduleId){
+  const subs=await apiFetch(`/modules/${moduleId}/subtopics`);
+  const tb=document.getElementById("subtopicsTableBody");
+  if(!subs||!subs.length){tb.innerHTML='<tr class="empty-row"><td colspan="5">No subtopics — add one above</td></tr>';return;}
+  tb.innerHTML=subs.map(s=>`
+    <tr>
+      <td>${s.order_num}</td>
+      <td style="display:flex;align-items:center;gap:.5rem"><span>${s.icon||'◈'}</span><span>${s.title}</span></td>
+      <td style="font-family:var(--fm);font-size:.65rem;color:var(--dim)">${s.slug}</td>
+      <td><span class="status-pill ${s.status}">${s.status.toUpperCase()}</span></td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="action-btn edit" onclick="editSubtopic(${s.id},'${s.title}','${s.slug}','${s.icon||'◈'}',${s.order_num})">EDIT</button>
+          <button class="action-btn del" onclick="deleteSubtopic(${s.id})">DEL</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function closeModuleModal(){ document.getElementById("moduleModal").classList.remove("open"); }
+
+async function saveModule(status){
+  const id=document.getElementById("mId").value;
+  const data={
+    title:document.getElementById("mTitle").value,
+    subtitle:document.getElementById("mSubtitle").value,
+    slug:document.getElementById("mSlug").value,
+    icon:document.getElementById("mIcon").value,
+    category_id:document.getElementById("mCategory").value||null,
+    difficulty:document.getElementById("mDifficulty").value,
+    read_time:document.getElementById("mReadTime").value,
+    simulation_slug:document.getElementById("mSimSlug").value,
+    color:document.getElementById("mColor").value,
+    glow:document.getElementById("mGlow").value,
+    status,
+    featured:+document.getElementById("mFeatured").value,
+    description:document.getElementById("mDesc").value,
+    content:document.getElementById("mContent").value,
+  };
+  if(!data.title){toast("Title is required","error");return;}
+  let result;
+  if(id){ result=await apiFetch(`/modules/${id}`,{method:"PUT",body:JSON.stringify(data)}); }
+  else { result=await apiFetch("/modules",{method:"POST",body:JSON.stringify(data)}); if(result?.id){currentModuleId=result.id;document.getElementById("mId").value=result.id;document.getElementById("subtopicsSection").style.display="block";} }
+  if(result!==null){toast(`Module ${status==="published"?"published":"saved as draft"}!`,"success");loadModules();}
+  else toast("Save failed","error");
+}
+
+async function deleteModule(id,title){
+  if(!confirm(`Delete "${title}"? This will also delete all its subtopics.`))return;
+  const r=await apiFetch(`/modules/${id}`,{method:"DELETE"});
+  if(r)toast("Module deleted","success");
+  loadModules();
+}
+
+function autoSlug(){
+  const t=document.getElementById("mTitle").value;
+  if(!document.getElementById("mSlug").dataset.manual)
+    document.getElementById("mSlug").value=t.toLowerCase().replace(/[^\w\s-]/g,"").replace(/[\s_-]+/g,"-").trim();
+}
+document.getElementById("mSlug").addEventListener("input",()=>document.getElementById("mSlug").dataset.manual="1");
+
+// ── SUBTOPICS ─────────────────────────────────────────
+let editingSubtopicId=null;
+function openSubtopicModal(){
+  if(!currentModuleId){toast("Save the module first","error");return;}
+  editingSubtopicId=null;
+  document.getElementById("stId").value=""; document.getElementById("stTitle").value="";
+  document.getElementById("stSlug").value=""; document.getElementById("stIcon").value="◈";
+  document.getElementById("stOrder").value="0"; document.getElementById("stDesc").value="";
+  document.getElementById("stContent").value=""; document.getElementById("stModalTitle").textContent="NEW SUBTOPIC";
+  document.getElementById("subtopicModal").classList.add("open");
+}
+
+function editSubtopic(id,title,slug,icon,order){
+  editingSubtopicId=id;
+  document.getElementById("stId").value=id; document.getElementById("stTitle").value=title;
+  document.getElementById("stSlug").value=slug; document.getElementById("stIcon").value=icon;
+  document.getElementById("stOrder").value=order; document.getElementById("stModalTitle").textContent=`EDIT: ${title.toUpperCase()}`;
+  document.getElementById("subtopicModal").classList.add("open");
+}
+
+function closeSubtopicModal(){ document.getElementById("subtopicModal").classList.remove("open"); }
+function autoStSlug(){
+  const t=document.getElementById("stTitle").value;
+  document.getElementById("stSlug").value=t.toLowerCase().replace(/[^\w\s-]/g,"").replace(/[\s_-]+/g,"-").trim();
+}
+
+async function saveSubtopic(){
+  const id=editingSubtopicId;
+  const data={title:document.getElementById("stTitle").value,slug:document.getElementById("stSlug").value,icon:document.getElementById("stIcon").value,order_num:+document.getElementById("stOrder").value,description:document.getElementById("stDesc").value,content:document.getElementById("stContent").value,status:"published"};
+  if(!data.title){toast("Title required","error");return;}
+  let r;
+  if(id) r=await apiFetch(`/subtopics/${id}`,{method:"PUT",body:JSON.stringify(data)});
+  else r=await apiFetch(`/modules/${currentModuleId}/subtopics`,{method:"POST",body:JSON.stringify(data)});
+  if(r!==null){toast("Subtopic saved!","success");closeSubtopicModal();loadSubtopicsTable(currentModuleId);}
+  else toast("Save failed","error");
+}
+
+async function deleteSubtopic(id){
+  if(!confirm("Delete this subtopic?"))return;
+  await apiFetch(`/subtopics/${id}`,{method:"DELETE"});
+  toast("Deleted","success"); loadSubtopicsTable(currentModuleId);
+}
+
+// ── TIMELINE ──────────────────────────────────────────
+async function loadTimeline(){
+  const phases=await apiFetch("/timeline");
+  const tb=document.getElementById("timelineTableBody");
+  if(!phases){tb.innerHTML='<tr class="empty-row"><td colspan="6">NO PHASES</td></tr>';return;}
+  tb.innerHTML=phases.map(p=>`
+    <tr>
+      <td style="font-family:var(--fm);font-size:.8rem;color:${p.color}">${p.order_num}</td>
+      <td style="display:flex;align-items:center;gap:.6rem"><span style="font-size:1.2rem">${p.icon}</span><span style="font-weight:600;color:${p.color}">${p.title}</span></td>
+      <td style="font-family:var(--fm);font-size:.7rem;color:var(--text2)">${p.time_label}</td>
+      <td style="font-family:var(--fm);font-size:.7rem;color:var(--text2)">${p.temperature}</td>
+      <td><span class="status-pill ${p.status}">${p.status.toUpperCase()}</span></td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="action-btn edit" onclick="editPhase(${JSON.stringify(p).replace(/"/g,'&quot;')})">EDIT</button>
+          <button class="action-btn edit" onclick="window.open('/timeline/${p.slug}','_blank')">👁</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function editPhase(p){
+  document.getElementById("phaseId").value=p.id;
+  document.getElementById("phTitle").value=p.title;
+  document.getElementById("phIcon").value=p.icon;
+  document.getElementById("phTimeLabel").value=p.time_label;
+  document.getElementById("phTimeYears").value=p.time_years;
+  document.getElementById("phTemp").value=p.temperature;
+  document.getElementById("phColor").value=p.color;
+  document.getElementById("phDesc").value=p.description;
+  document.getElementById("phContent").value=p.content||"";
+  document.getElementById("phStatus").value=p.status;
+  document.getElementById("phaseModal").classList.add("open");
+}
+
+function closePhaseModal(){ document.getElementById("phaseModal").classList.remove("open"); }
+
+async function savePhase(){
+  const id=document.getElementById("phaseId").value;
+  const data={title:document.getElementById("phTitle").value,icon:document.getElementById("phIcon").value,time_label:document.getElementById("phTimeLabel").value,time_years:document.getElementById("phTimeYears").value,temperature:document.getElementById("phTemp").value,color:document.getElementById("phColor").value,description:document.getElementById("phDesc").value,content:document.getElementById("phContent").value,status:document.getElementById("phStatus").value};
+  const r=await apiFetch(`/timeline/${id}`,{method:"PUT",body:JSON.stringify(data)});
+  if(r)toast("Phase saved!","success");
+  closePhaseModal(); loadTimeline();
+}
+
+// ── PAPERS ────────────────────────────────────────────
+async function loadPapers(){
+  const papers=await apiFetch("/papers");
+  const tb=document.getElementById("papersTableBody");
+  if(!papers||!papers.length){tb.innerHTML='<tr class="empty-row"><td colspan="6">NO PAPERS FOUND</td></tr>';return;}
+  tb.innerHTML=papers.map(p=>`
+    <tr>
+      <td>
+        <div style="font-weight:600;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div>
+        ${p.url?`<a href="${p.url}" target="_blank" style="font-family:var(--fm);font-size:.58rem;color:var(--cyan)">OPEN →</a>`:''}
+      </td>
+      <td style="font-size:.78rem;color:var(--text2)">${p.authors}</td>
+      <td style="font-size:.78rem;color:var(--text2)">${p.journal}</td>
+      <td style="font-family:var(--fm);font-size:.75rem">${p.year}</td>
+      <td style="font-size:.75rem;color:var(--text2)">${p.module_title||'—'}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="action-btn edit" onclick="editPaper(${JSON.stringify(p).replace(/"/g,'&quot;')})">EDIT</button>
+          <button class="action-btn del" onclick="deletePaper(${p.id})">DEL</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openPaperModal(){ 
+  document.getElementById("paperId").value=""; document.getElementById("paperTitle").value="";
+  document.getElementById("paperAuthors").value=""; document.getElementById("paperJournal").value="";
+  document.getElementById("paperYear").value=new Date().getFullYear(); document.getElementById("paperModule").value="";
+  document.getElementById("paperDoi").value=""; document.getElementById("paperUrl").value="";
+  document.getElementById("paperAbstract").value=""; document.getElementById("paperModalTitle").textContent="NEW RESEARCH PAPER";
+  document.getElementById("paperModal").classList.add("open");
+}
+
+function editPaper(p){
+  document.getElementById("paperId").value=p.id; document.getElementById("paperTitle").value=p.title||"";
+  document.getElementById("paperAuthors").value=p.authors||""; document.getElementById("paperJournal").value=p.journal||"";
+  document.getElementById("paperYear").value=p.year||2024; document.getElementById("paperModule").value=p.module_id||"";
+  document.getElementById("paperDoi").value=p.doi||""; document.getElementById("paperUrl").value=p.url||"";
+  document.getElementById("paperAbstract").value=p.abstract||""; document.getElementById("paperModalTitle").textContent="EDIT PAPER";
+  document.getElementById("paperModal").classList.add("open");
+}
+
+function closePaperModal(){ document.getElementById("paperModal").classList.remove("open"); }
+
+async function savePaper(){
+  const id=document.getElementById("paperId").value;
+  const data={title:document.getElementById("paperTitle").value,authors:document.getElementById("paperAuthors").value,journal:document.getElementById("paperJournal").value,year:+document.getElementById("paperYear").value,module_id:document.getElementById("paperModule").value||null,doi:document.getElementById("paperDoi").value,url:document.getElementById("paperUrl").value,abstract:document.getElementById("paperAbstract").value};
+  if(!data.title){toast("Title required","error");return;}
+  let r;
+  if(id) r=await apiFetch(`/papers/${id}`,{method:"PUT",body:JSON.stringify(data)});
+  else r=await apiFetch("/papers",{method:"POST",body:JSON.stringify(data)});
+  if(r!==null){toast("Paper saved!","success");closePaperModal();loadPapers();}
+  else toast("Save failed","error");
+}
+
+async function deletePaper(id){
+  if(!confirm("Delete this paper?"))return;
+  await apiFetch(`/papers/${id}`,{method:"DELETE"});
+  toast("Deleted","success"); loadPapers();
+}
+
+// ── SIMULATIONS ───────────────────────────────────────
+async function loadSims(){
+  const sims=await apiFetch("/simulations");
+  const tb=document.getElementById("simsTableBody");
+  if(!sims){tb.innerHTML='<tr class="empty-row"><td colspan="6">NO SIMS</td></tr>';return;}
+  const icons={"black-hole":"⚫","solar-system":"🌌","exoplanets":"🪐","star-lifecycle":"⭐","galaxy":"🌀","gravitational-waves":"〰","wormhole":"🕳","asteroids":"☄","planet-formation":"💫","spacetime-curvature":"🕸"};
+  tb.innerHTML=sims.map(s=>`
+    <tr>
+      <td style="display:flex;align-items:center;gap:.6rem">
+        <span style="font-size:1.1rem">${icons[s.slug]||'🔭'}</span>
+        <div>
+          <div style="font-weight:600">${s.title}</div>
+          <div style="font-family:var(--fm);font-size:.58rem;color:var(--dim)">/simulations/${s.slug}</div>
+        </div>
+      </td>
+      <td style="font-size:.78rem;color:var(--text2)">${s.category}</td>
+      <td style="font-size:.78rem">${s.difficulty}</td>
+      <td style="font-family:var(--fm);font-size:.65rem;color:var(--text2)">${s.tech}</td>
+      <td>${s.featured?'<span style="color:var(--gold)">★ YES</span>':'<span style="color:var(--dim)">—</span>'}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="action-btn edit" onclick="editSim(${JSON.stringify(s).replace(/"/g,'&quot;')})">EDIT</button>
+          <button class="action-btn edit" onclick="window.open('/simulations/${s.slug}','_blank')">▶ RUN</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function editSim(s){
+  document.getElementById("simId").value=s.id;
+  document.getElementById("simTitle").value=s.title;
+  document.getElementById("simDesc").value=s.description||"";
+  document.getElementById("simCat").value=s.category||"";
+  document.getElementById("simDiff").value=s.difficulty||"Intermediate";
+  document.getElementById("simTech").value=s.tech||"Three.js";
+  document.getElementById("simFeat").value=s.featured?"1":"0";
+  document.getElementById("simStat").value=s.status||"published";
+  document.getElementById("simModal").classList.add("open");
+}
+
+function closeSimModal(){ document.getElementById("simModal").classList.remove("open"); }
+
+async function saveSim(){
+  const id=document.getElementById("simId").value;
+  const data={title:document.getElementById("simTitle").value,description:document.getElementById("simDesc").value,category:document.getElementById("simCat").value,difficulty:document.getElementById("simDiff").value,tech:document.getElementById("simTech").value,featured:+document.getElementById("simFeat").value,status:document.getElementById("simStat").value};
+  const r=await apiFetch(`/simulations/${id}`,{method:"PUT",body:JSON.stringify(data)});
+  if(r){toast("Simulation updated!","success");closeSimModal();loadSims();}
+  else toast("Save failed","error");
+}
+
+// ── CATEGORIES ────────────────────────────────────────
+async function loadCategories(){
+  const cats=await apiFetch("/categories");
+  const tb=document.getElementById("catsTableBody");
+  if(!cats){tb.innerHTML='<tr class="empty-row"><td colspan="5">NONE</td></tr>';return;}
+  tb.innerHTML=cats.map(c=>`
+    <tr>
+      <td style="display:flex;align-items:center;gap:.6rem"><span>${c.icon}</span><span style="color:${c.glow};font-weight:600">${c.name}</span></td>
+      <td style="font-family:var(--fm);font-size:.65rem;color:var(--dim)">${c.slug}</td>
+      <td><div style="width:14px;height:14px;border-radius:3px;background:${c.color};display:inline-block"></div></td>
+      <td style="font-family:var(--fm);font-size:.72rem;color:var(--text2)">—</td>
+      <td><button class="action-btn edit" onclick="">EDIT</button></td>
+    </tr>
+  `).join("");
+}
+
+async function createCategory(){
+  const name=prompt("Category name:");
+  if(!name)return;
+  const r=await apiFetch("/categories",{method:"POST",body:JSON.stringify({name,description:"",color:"#38BDF8",glow:"#38BDF8",icon:"🔭"})});
+  if(r){toast("Category created!","success");categories=await apiFetch("/categories")||[];populateCategoryDropdowns();loadCategories();}
+}
+
+// ── DROPDOWNS ─────────────────────────────────────────
+function populateCategoryDropdowns(){
+  const s=document.getElementById("mCategory");
+  const prev=s.value;
+  s.innerHTML='<option value="">— None —</option>'+categories.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
+  s.value=prev;
+}
+
+function populateModuleDropdowns(){
+  const s=document.getElementById("paperModule");
+  const prev=s.value;
+  s.innerHTML='<option value="">— None —</option>'+allModules.map(m=>`<option value="${m.id}">${m.icon||''} ${m.title}</option>`).join("");
+  s.value=prev;
+}
+
+// ── EQUATION EDITOR ───────────────────────────────────
+function insertEq(text){
+  const ta=document.getElementById("eqInput");
+  const s=ta.selectionStart, e=ta.selectionEnd;
+  ta.value=ta.value.slice(0,s)+text+ta.value.slice(e);
+  ta.selectionStart=ta.selectionEnd=s+text.length;
+  ta.focus(); renderEqPreview();
+}
+
+function renderEqPreview(){
+  const eq=document.getElementById("eqInput").value.trim();
+  const prev=document.getElementById("eqPreview");
+  if(!eq){prev.innerHTML=''; return;}
+  try{
+    katex.render(eq, prev, {displayMode:true,throwOnError:false});
+  } catch(e){ prev.textContent=eq; }
+}
+
+function copyEqBlock(){
+  const eq=document.getElementById("eqInput").value.trim();
+  navigator.clipboard.writeText(`$$\n${eq}\n$$`);
+  toast("Copied as block equation!","success");
+}
+
+function copyEqInline(){
+  const eq=document.getElementById("eqInput").value.trim();
+  navigator.clipboard.writeText(`$${eq}$`);
+  toast("Copied as inline equation!","success");
+}
+
+function setupCommonEquations(){
+  const eqs=[
+    {name:"Schwarzschild Radius",eq:"r_s = \\frac{2GM}{c^2}"},
+    {name:"Hawking Temperature",eq:"T_H = \\frac{\\hbar c^3}{8\\pi G M k_B}"},
+    {name:"Einstein Field Equations",eq:"G_{\\mu\\nu} + \\Lambda g_{\\mu\\nu} = \\frac{8\\pi G}{c^4} T_{\\mu\\nu}"},
+    {name:"Mass-Energy Equivalence",eq:"E = mc^2"},
+    {name:"Time Dilation (Special)",eq:"t' = \\gamma t_0 = \\frac{t_0}{\\sqrt{1 - v^2/c^2}}"},
+    {name:"Bekenstein-Hawking Entropy",eq:"S_{BH} = \\frac{k_B c^3 A}{4 G \\hbar}"},
+    {name:"Friedmann Equation",eq:"H^2 = \\frac{8\\pi G \\rho}{3} - \\frac{kc^2}{a^2} + \\frac{\\Lambda c^2}{3}"},
+    {name:"Lorentz Factor",eq:"\\gamma = \\frac{1}{\\sqrt{1 - \\frac{v^2}{c^2}}}"},
+  ];
+  document.getElementById("commonEqs").innerHTML=eqs.map(e=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:rgba(5,12,30,.4);border:1px solid var(--border);border-radius:5px;gap:.75rem;cursor:pointer" onclick="loadEq('${e.eq.replace(/'/g,"\\'")}')">
+      <div>
+        <div style="font-family:var(--fm);font-size:.62rem;color:var(--blue);margin-bottom:.2rem">${e.name}</div>
+        <code style="font-size:.68rem;color:var(--text2)">${e.eq.slice(0,40)}${e.eq.length>40?"...":""}</code>
+      </div>
+      <span style="color:var(--dim);font-size:.8rem">→</span>
+    </div>
+  `).join("");
+}
+
+function loadEq(eq){
+  document.getElementById("eqInput").value=eq;
+  renderEqPreview();
+}
+
+// ── CONTENT EDITOR ────────────────────────────────────
+function insertMd(text){
+  const ta=document.getElementById("mContent");
+  const s=ta.selectionStart, e=ta.selectionEnd;
+  const sel=ta.value.slice(s,e);
+  const ins=sel?text.replace("bold",sel).replace("italic",sel):text;
+  ta.value=ta.value.slice(0,s)+ins+ta.value.slice(e);
+  ta.selectionStart=ta.selectionEnd=s+ins.length;
+  ta.focus();
+}
+
+let previewVisible=false;
+function togglePreview(){
+  previewVisible=!previewVisible;
+  const pane=document.getElementById("previewPane");
+  pane.style.display=previewVisible?"block":"none";
+  if(previewVisible){
+    const content=document.getElementById("mContent").value;
+    const prev=document.getElementById("modulePreview");
+    prev.innerHTML=mdToHtml(content);
+    if(typeof renderMathInElement==="function") renderMathInElement(prev,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+  }
+}
+
+function mdToHtml(md){
+  return md.replace(/^#{1}\s+(.+)$/gm,'<h1>$1</h1>').replace(/^#{2}\s+(.+)$/gm,'<h2>$1</h2>').replace(/^#{3}\s+(.+)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g,m=>`<ul>${m}</ul>`).replace(/\n\n+/g,'</p><p>');
+}
+
+// ── SETTINGS ──────────────────────────────────────────
+async function changePw(){
+  const pw=document.getElementById("newPw").value;
+  if(!pw){toast("Enter a new password","error");return;}
+  toast("Password change would be implemented server-side","info");
+}
+
+// ── COLOR SWATCHES ────────────────────────────────────
+const COLORS=["#38BDF8","#22D3EE","#A855F7","#EC4899","#FCD34D","#4ADE80","#FB923C","#F87171","#6B21A8","#7C2D12","#065F46","#1D4ED8","#14532D","#312E81","#4A1942"];
+function updateColorSwatches(){
+  const sw=document.getElementById("colorSwatches");
+  if(!sw) return;
+  sw.innerHTML=COLORS.map(c=>`<div class="color-swatch ${document.getElementById("mColor").value===c?"selected":""}" style="background:${c}" onclick="document.getElementById('mColor').value='${c}';document.getElementById('mGlow').value='${c}';updateColorSwatches()" title="${c}"></div>`).join("");
+}
+updateColorSwatches();
+
+// ── TOAST ─────────────────────────────────────────────
+function toast(msg,type="info"){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove("show"),3000);
+}
+
+// ── MODAL CLOSE ON BG ─────────────────────────────────
+document.querySelectorAll(".modal-overlay").forEach(o=>{
+  o.addEventListener("click",e=>{ if(e.target===o) o.classList.remove("open"); });
+});
+
+// ── KEYBOARD ──────────────────────────────────────────
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape") document.querySelectorAll(".modal-overlay.open").forEach(m=>m.classList.remove("open"));
+});
+</script>
+</body>
+</html>

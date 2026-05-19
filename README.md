@@ -1,4 +1,4 @@
-# ◈ AstroVerse v5 — Astrophysics Education & Simulation Platform
+# ◈ AstroVerse — Astrophysics Education & Simulation Platform
 
 A complete multi-page astrophysics education platform with interactive WebGL simulations,
 scientific documentation, CMS admin dashboard, and immersive space visualizations.

@@ -1520,15 +1520,16 @@ function buildPlanetFormationSim(){
 // ============================================================
 // SIM ROUTER — maps slug → builder function
 // ============================================================
-window.SIM_BUILDERS = {
-  "black-hole":          buildBlackHoleSim,
-  "solar-system":        buildSolarSystemSim,
-  "exoplanets":          buildExoplanetSim,
-  "star-lifecycle":      buildStarLifeSim,
-  "galaxy":              buildGalaxySim,
-  "gravitational-waves": buildGravWaveSim,
-  "wormhole":            buildWormholeSim,
-  "spacetime-curvature": buildSpacetimeSim,
-  "asteroids":           buildAsteroidSim,
-  "planet-formation":    buildPlanetFormationSim,
-};
+// ── SIM ROUTER (extended v6) ──────────────────────────────
+window.SIM_BUILDERS = {};
+
+// Legacy builders (still in this file)
+window.SIM_BUILDERS["galaxy"]            = buildGalaxySim;
+window.SIM_BUILDERS["wormhole"]          = buildWormholeSim;
+window.SIM_BUILDERS["asteroids"]         = buildAsteroidSim;
+window.SIM_BUILDERS["planet-formation"]  = buildPlanetFormationSim;
+window.SIM_BUILDERS["exoplanets"]        = buildExoplanetSim;
+
+// New v6 simulations loaded from separate files (see loadSimFile)
+// Routes for file-based sims registered in index.html via loadSimFile()
+

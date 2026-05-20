@@ -913,7 +913,9 @@ function renderSimCards(containerId, sims){
   const icons = {
     "black-hole":"⚫","solar-system":"🪐","exoplanets":"🌠","star-lifecycle":"⭐",
     "galaxy":"🌀","gravitational-waves":"〰️","wormhole":"🕳","asteroids":"☄️",
-    "planet-formation":"💫","spacetime-curvature":"🕸"
+    "planet-formation":"💫","spacetime-curvature":"🕸",
+    "hr-diagram":"📈","exoplanet-transit":"✨","doppler-shift":"🌈",
+    "kepler-laws":"📐","cosmic-expansion":"🔭"
   };
   const gradients = {
     "black-hole":"135deg,rgba(107,33,168,.3),rgba(168,85,247,.15)",
@@ -925,7 +927,12 @@ function renderSimCards(containerId, sims){
     "wormhole":"135deg,rgba(49,46,129,.3),rgba(129,140,248,.1)",
     "asteroids":"135deg,rgba(124,45,18,.3),rgba(251,146,60,.1)",
     "planet-formation":"135deg,rgba(5,46,22,.3),rgba(74,222,128,.1)",
-    "spacetime-curvature":"135deg,rgba(30,58,138,.3),rgba(96,165,250,.1)"
+    "spacetime-curvature":"135deg,rgba(30,58,138,.3),rgba(96,165,250,.1)",
+    "hr-diagram":"135deg,rgba(80,20,100,.3),rgba(200,100,255,.1)",
+    "exoplanet-transit":"135deg,rgba(5,50,80,.3),rgba(56,189,248,.15)",
+    "doppler-shift":"135deg,rgba(60,10,10,.3),rgba(255,100,50,.15)",
+    "kepler-laws":"135deg,rgba(20,60,20,.3),rgba(100,220,100,.1)",
+    "cosmic-expansion":"135deg,rgba(5,5,60,.3),rgba(80,100,255,.15)",
   };
   c.innerHTML = sims.map(s=>`
     <div class="sim-card" onclick="navigate('/simulations/${s.slug}')" style="cursor:pointer">
@@ -982,11 +989,42 @@ async function loadSimulationDetail(slug){
   `;
 
   // Run the appropriate simulation
-  setTimeout(()=>{
+  setTimeout(async ()=>{
+    // Clean up previous sim
+    if(window._simCleanup){ try{ window._simCleanup(); }catch(e){} window._simCleanup=null; }
     if(window._currentAnimFrame){ cancelAnimationFrame(window._currentAnimFrame); window._currentAnimFrame=null; }
-    const builder = SIM_SCRIPTS[slug];
-    if(builder){ builder(); }
-    else { buildGenericSim(slug, title); }
+
+    const SIM_SCRIPTS = window.SIM_BUILDERS || {};
+
+    // File-based sims (v6 individual files)
+    const FILE_SIMS = {
+      "black-hole":          "/static/js/simulations/black-hole.js",
+      "solar-system":        "/static/js/simulations/solar-system.js",
+      "star-lifecycle":      "/static/js/simulations/star-lifecycle.js",
+      "gravitational-waves": "/static/js/simulations/gravitational-waves.js",
+      "spacetime-curvature": "/static/js/simulations/spacetime-curvature.js",
+      "galaxy":              "/static/js/simulations/galaxy.js",
+      "hr-diagram":          "/static/js/simulations/hr-diagram.js",
+      "exoplanet-transit":   "/static/js/simulations/exoplanet-transit.js",
+      "doppler-shift":       "/static/js/simulations/doppler-shift.js",
+      "kepler-laws":         "/static/js/simulations/kepler-laws.js",
+      "cosmic-expansion":    "/static/js/simulations/cosmic-expansion.js",
+    };
+
+    if(FILE_SIMS[slug]){
+      // Load and execute file-based simulation
+      const existingScript = document.querySelector(`script[data-sim="${slug}"]`);
+      if(existingScript) existingScript.remove(); // force reload
+      const script = document.createElement('script');
+      script.src = FILE_SIMS[slug] + '?v=' + Date.now();
+      script.setAttribute('data-sim', slug);
+      script.onerror = ()=>buildGenericSim(slug, title);
+      document.head.appendChild(script);
+    } else if(SIM_SCRIPTS[slug]){
+      SIM_SCRIPTS[slug]();
+    } else {
+      buildGenericSim(slug, title);
+    }
   }, 150);
 }
 
